@@ -172,52 +172,57 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>autoDriveExpextSpeed</ItemText>
+          <ItemText>rc.ch3,0x10</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>rc.ch3,0x10</ItemText>
+          <ItemText>rc.ch4</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>rc.ch4</ItemText>
+          <ItemText>rc.sw1</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>rc.sw1</ItemText>
+          <ItemText>rc.sw2</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>rc.sw2</ItemText>
+          <ItemText>expectBrakeVal,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_CurrentDir,0x0A</ItemText>
+          <ItemText>TargetTorque,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>TargetTorque,0x0A</ItemText>
+          <ItemText>g_vehicleSpeed</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_vehicleSpeed</ItemText>
+          <ItemText>g_TR,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>autoDriveSetTorque,0x0A</ItemText>
+          <ItemText>YQRL_info.speed</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_TR,0x0A</ItemText>
+          <ItemText>YQRR_info.speed</ItemText>
+        </Ww>
+        <Ww>
+          <count>10</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>RxMessage.ExtId</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -230,6 +235,16 @@
           <count>1</count>
           <WinNumber>2</WinNumber>
           <ItemText>g_lastValidCmdTime</ItemText>
+        </Ww>
+        <Ww>
+          <count>2</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>db_send_can_ok</ItemText>
+        </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>db_expectBrakeVal,0x0A</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>

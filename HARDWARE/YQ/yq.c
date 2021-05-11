@@ -188,14 +188,14 @@ void YQFR_TRctrl(u8 RunSta,u8 SonicSta,s16 TR)
 * @ prama: RunSta-运行状态[3-行驶,其他-刹车]
 ********** SonicSta-超声波状态[0-正常,1-报警]
 ********** TR-油门开度(-256~256)正值前进，负值后退
-********** expectSpeedDir 当前期望车辆速度方向
+********** expectSpeedDir 当前期望车辆速度方向, 如果车辆正在向前行驶，但需要制动，此时期望的速度方向仍为正！
 * @retval: 无
 ********************************************************************
 * @attention:档位[0-空档,1-前进档,2-后退档,3-低速档]
 *********************************************************************
 */
 
-s8 g_CurrentDir;
+s8 g_expectSpeedDir;
 s16 g_TR;
 void YQRL_TRctrl(u8 RunSta,u8 SonicSta,s16 TR, s8 expectSpeedDir)
 {
@@ -211,7 +211,7 @@ void YQRL_TRctrl(u8 RunSta,u8 SonicSta,s16 TR, s8 expectSpeedDir)
 		TR = MAX_TR;
 	if(TR<-MAX_TR)
 		TR = -MAX_TR;
-	g_CurrentDir =  expectSpeedDir;
+	g_expectSpeedDir =  expectSpeedDir;
 	g_TR = TR;
 	if(expectSpeedDir * TR < 0 ||  // 期望速度方向与期望扭矩方向不一致时，表明需要进行制动操作
 	   expectSpeedDir == 0)	       // 当期望速度为0时，无论如何都需要制动
@@ -252,7 +252,14 @@ void YQRL_TRctrl(u8 RunSta,u8 SonicSta,s16 TR, s8 expectSpeedDir)
             }
             else//电机制动
             {
-                CtrlMsg[0] = 3;
+				//此处应判断期望的速度方向，并据此设置对应的档位
+				//因为速度反馈值为标量，只能通过档位值判断其方向
+				//如果车辆正在向前行驶，但档位值置反，解析得到的速度将为负数，导致错误
+				if(expectSpeedDir == 1)
+					CtrlMsg[0] = 3; //前进挡
+				else
+					CtrlMsg[0] = 2; //
+
                 CtrlMsg[1] = 0;
                 CtrlMsg[2] = 0;
                 CtrlMsg[3] = 0x60;   //0x40 刹车 0x20 油门扭矩控制
@@ -326,7 +333,7 @@ void YQRR_TRctrl(u8 RunSta,u8 SonicSta,s16 TR, s8 expectSpeedDir)
 		brakeTorque = fabs(TR);
 		u16_brakeVal = 1.0*maxBrakeVal*brakeTorque/255;
 		s16_brakeVal = -u16_brakeVal;
-		TR = 0.0; //将驱动扭矩置0
+		TR = 0; //将驱动扭矩置0
 	}
 
     /*运行状态*/
@@ -359,7 +366,14 @@ void YQRR_TRctrl(u8 RunSta,u8 SonicSta,s16 TR, s8 expectSpeedDir)
             }
             else//电机制动
             {
-                CtrlMsg[0] = 3;
+				//此处应判断期望的速度方向，并据此设置对应的档位
+				//因为速度反馈值为标量，只能通过档位值判断其方向
+				//如果车辆正在向前行驶，但档位值置反，解析得到的速度将为负数，导致错误
+				if(expectSpeedDir == 1)
+					CtrlMsg[0] = 3; //前进挡
+				else
+					CtrlMsg[0] = 2; //后退档
+				
                 CtrlMsg[1] = 0;
                 CtrlMsg[2] = 0;
                 CtrlMsg[3] = 0x68;

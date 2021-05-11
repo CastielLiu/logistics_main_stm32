@@ -2,6 +2,7 @@
 #define __DMS055A_H
 
 #include "sys.h"
+#include "common.h"
 
 /* CRC 高位字节值表*/
 static unsigned char auchCRCHi[] = {

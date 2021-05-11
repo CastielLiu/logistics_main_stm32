@@ -9,14 +9,15 @@
 #include "sonic.h"
 #include "yq.h"
 #include "industry.h"
+#include "common.h"
 
 int main(void)
 {
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组2
-    CAN_Mode_Init(CAN_SJW_1tq,CAN_BS2_8tq,CAN_BS1_9tq,4,CAN_Mode_Normal);	//初始化CAN接口，与JY01通信，控制后轮
-    delay_init();	    				//延时函数初始化
+    CAN_Mode_Init(CAN_SJW_1tq,CAN_BS2_8tq,CAN_BS1_9tq,4,CAN_Mode_Normal);	//初始化CAN接口，与JY01通信，控制后轮  //CAN_Mode_LoopBack  CAN_Mode_Normal
+    delay_init();	    				//延时函数初始化 
 	
-	init_pid_params(&g_speedPID, 50.0, 0.5, 1.0);  //50 0.4 1.0
+	init_pid_params(&g_speedPID, 50.0, 0.3, 1.0);  //50 0.4 1.0
 
     LED_Init();
 //    BEEP_Init();
@@ -38,9 +39,8 @@ int main(void)
     while(1)
     {
         MCU_Light = !MCU_Light;
+		MCU_Light3 = !MCU_Light3;
+		
         delay_ms(200);
     }
 }
-
-
-

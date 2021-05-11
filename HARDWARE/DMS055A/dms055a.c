@@ -3,6 +3,7 @@
 #include "math.h"
 #include "string.h"
 
+
 u8 DMS055A_Buf[DMS055A_Buf_Len];
 
 void DMS055A_Init(u32 baudrate)
@@ -16,6 +17,16 @@ void DMS055A_Init(u32 baudrate)
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA2,ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4,ENABLE);
 
+#if AUTO_RXTX_485 == 0 //不自动收发，手动配置为接收模式，PD7拉高
+	//PD7 收发控制引脚
+	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_7; 
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz; 
+    GPIO_Init(GPIOD,&GPIO_InitStructure);
+	GPIO_SetBits(GPIOD,GPIO_Pin_7);	
+	
+#endif
+	
     //DMS055A_TX -> UART4_TX -> PC.10
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;

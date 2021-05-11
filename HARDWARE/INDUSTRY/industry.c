@@ -85,6 +85,10 @@ void Industry_SendData(u8 *s,u8 len)
 void Get_Industry_Data(Industry_info_t	*Industry_info,u8 *buf, int len)
 {
 	u8 pkgId, dataLen;
+	
+	if(len < 5) //数据包的最小长度为5(不含任何数据)
+		return;
+	
     if((buf[0]==0x66)&&(buf[1]==0xCC))
     {
 		pkgId = buf[2];
@@ -92,7 +96,7 @@ void Get_Industry_Data(Industry_info_t	*Industry_info,u8 *buf, int len)
 		if(generateCheckVal(buf+2, dataLen+2) != buf[dataLen+4])
 			return ;
 			
-        if(pkgId == 0x01) //速度、转向控制指令数据包
+        if(pkgId == 0x01 && len >= 11) //速度、转向控制指令数据包
         {
 			g_lastValidCmdTime = g_seconds;
             Industry_info->EN = buf[4];
@@ -112,19 +116,16 @@ void Get_Industry_Data(Industry_info_t	*Industry_info,u8 *buf, int len)
             Industry_info->BrakeSig = buf[9];
             Industry_info->SumCheck = buf[10];
         }
-		else if(pkgId == 0x05) //速度PID参数
+		else if(pkgId == 0x05 && len >= 11) //设置速度PID参数
 		{
 			g_speedPID.kp = ((buf[4] * 256 + buf[5]) - 30000)/100.0;
 			g_speedPID.ki = ((buf[6] * 256 + buf[7]) - 30000)/100.0;
 			g_speedPID.kd = ((buf[8] * 256 + buf[9]) - 30000)/100.0;
-			
-			buf[4] = ((uint16_t)(g_speedPID.kp*100 + 30000))/256;
-			buf[5] = ((uint16_t)(g_speedPID.kp*100 + 30000))%256;
-			buf[6] = ((uint16_t)(g_speedPID.ki*100 + 30000))/256;
-			buf[7] = ((uint16_t)(g_speedPID.ki*100 + 30000))%256;
-			buf[8] = ((uint16_t)(g_speedPID.kd*100 + 30000))/256;
-			buf[9] = ((uint16_t)(g_speedPID.kd*100 + 30000))%256;
-			Industry_SendData(buf, len); //再反馈给发送方
+			feedbackSpeedPID();
+		}
+		else if(pkgId == 0x06) //获取速度PID参数
+		{
+			feedbackSpeedPID();
 		}
 		
 		buf[2] = 0; //将数据包ID复位
@@ -136,13 +137,26 @@ void Get_Industry_Data(Industry_info_t	*Industry_info,u8 *buf, int len)
 	}*/
 }
 
+void feedbackSpeedPID()
+{
+	u8 buf[11] = {0x66, 0xcc, 0x05, 0x06};
+	buf[4] = ((uint16_t)(g_speedPID.kp*100 + 30000))/256;
+	buf[5] = ((uint16_t)(g_speedPID.kp*100 + 30000))%256;
+	buf[6] = ((uint16_t)(g_speedPID.ki*100 + 30000))/256;
+	buf[7] = ((uint16_t)(g_speedPID.ki*100 + 30000))%256;
+	buf[8] = ((uint16_t)(g_speedPID.kd*100 + 30000))/256;
+	buf[9] = ((uint16_t)(g_speedPID.kd*100 + 30000))%256;
+	buf[10] = generateCheckVal(buf+2, buf[3]+2);
+	
+	Industry_SendData(buf, 11);
+}
 
 void DriveLess_Ctrl(void)
 {
 	
 }
 
-void Industry_Reply(s16 LrRealRPM,s16 RrRealRPM,s16 Angle,s16 targetTorque)
+void Industry_Reply(s16 LrRealRPM,s16 RrRealRPM,s16 Angle,s16 targetTorque, u8 targetBrakeVal)
 {
 	const int dataLen = 9;
 	
@@ -152,20 +166,22 @@ void Industry_Reply(s16 LrRealRPM,s16 RrRealRPM,s16 Angle,s16 targetTorque)
 //		Speed = Speed*WheelRadius;	//线速度m/s
 //		Speed = Speed*360;					//线速度0.01km/h
 		
-    //左后轮转速应答
-    IndustryRepMsg[5] = (LrRealRPM+30000)/256;
-    IndustryRepMsg[6] = (LrRealRPM+30000)%256;
+    //左后轮转速应答 r/min
+    IndustryRepMsg[4] = (LrRealRPM+30000)/256;
+    IndustryRepMsg[5] = (LrRealRPM+30000)%256;
 		
-		//右后轮转速应答
-    IndustryRepMsg[7] = (RrRealRPM+30000)/256;
-    IndustryRepMsg[8] = (RrRealRPM+30000)%256;
+	//右后轮转速应答
+    IndustryRepMsg[6] = (RrRealRPM+30000)/256;
+    IndustryRepMsg[7] = (RrRealRPM+30000)%256;
 
     //前轮转角应答
-    IndustryRepMsg[9] = ((Angle*10+30000)>>8)&0xFF;
-    IndustryRepMsg[10] = (Angle*10+30000)&0xFF;
+    IndustryRepMsg[8] = ((Angle*10+30000)>>8)&0xFF;
+    IndustryRepMsg[9] = (Angle*10+30000)&0xFF;
 	
-	IndustryRepMsg[11] = (targetTorque + 30000) >> 8;
-	IndustryRepMsg[12] = (targetTorque + 30000);
+	IndustryRepMsg[10] = (targetTorque + 30000) >> 8;
+	IndustryRepMsg[11] = (targetTorque + 30000);
+	
+	IndustryRepMsg[12] = targetBrakeVal;
 	
 
     //校验和计算
@@ -186,7 +202,7 @@ void USART2_IRQHandler(void)
 			
 		length = Industry_Buf_MaxLen-DMA_GetCurrDataCounter(DMA1_Channel6);
 
-        if(length == Industry_Buf_Len)
+        //if(length == Industry_Buf_Len)
         {
             Get_Industry_Data(&Industry_info,Industry_Buf,length);
         }

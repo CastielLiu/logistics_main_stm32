@@ -44,17 +44,21 @@ void TIM7_Init(void)
 }
 
 int Angle,Alpha,RealRPM,TargetTorque;
-float autoDriveExpextSpeed = 0.0;
-float manualDriveExpectSpeed = 0.0;
+float expectSpeed = 0.0;
+const float munualCtrlMaxSpeed = 2.5; //m/s
 float g_vehicleSpeed = 0.0;
 
 double g_seconds = 0.0;          //从定时器开启经过的时间
 uint32_t g_timerCnt10ms = 0;     //10ms计数器
 double g_lastValidCmdTime = 0.0; //上一次接收有效指令的时间,当指令超时后需紧急制动！
+
+s8 expectSpeedDir = 0;  //必须初始化为0
+u16 expectBrakeVal = 0;  //必须初始化为0
 	
 void TIM7_IRQHandler(void)   //TIM7中断
 {
-	s8 expectSpeedDir = 0;  //必须初始化为0
+	expectSpeedDir = 0;
+	expectBrakeVal = 0;
     if (TIM_GetITStatus(TIM7,TIM_IT_Update)!= RESET)  //检查TIM7更新中断发生与否
     {
         TIM_ClearITPendingBit(TIM7,TIM_IT_Update);  //清除TIMx更新中断标志
@@ -69,39 +73,70 @@ void TIM7_IRQHandler(void)   //TIM7中断
         Alpha = Angle*12.3/66/65;		//根据目标转角换算成实际前轮转角,单位(0.1deg)
 		TargetTorque = 0;
 		
-        /*自动驾驶状态*/
-        if(rc.sw2==3)
+        if(rc.sw2==3 ||  //右侧拨码中位 /*自动驾驶状态  PID速度控制*/
+		   rc.sw2==2)    //右侧拨码下位 /*手动驾驶状态  PID速度控制*/
         {
-			//判断控制指令是否超时，如超过100ms未更新指令，速度置零
-			if(g_seconds-g_lastValidCmdTime < 0.1)
-				autoDriveExpextSpeed = Industry_info.TargetSpeed;
-			else
+			if(rc.sw2==3) //自动
 			{
-				autoDriveExpextSpeed = 0.0;
+				//判断控制指令是否超时，如超过100ms未更新指令，速度置零
+				if(g_seconds-g_lastValidCmdTime < 0.1)
+					expectSpeed = Industry_info.TargetSpeed;
+				else
+				{
+					expectSpeed = 0.0;
+				}
+				
+				Angle = Industry_info.TargetAngle;
+				//Angle = -rc.ch1*65; //自动驾驶状态下使用遥控器转角进行测试
 			}
+			else  //手动
+			{
+				expectSpeed = 1.0 * rc.ch4/660 * munualCtrlMaxSpeed;
+				Angle = -rc.ch1*65;	//rc.ch1 [-660, 660] Angle [-660*65, 660*65]
+			}
+			
 			//速度 PID
-			if(autoDriveExpextSpeed == 0.0 && fabs(g_vehicleSpeed <= 0.3))
-				TargetTorque = IncrementPIDspeedCtrl(&g_speedPID,autoDriveExpextSpeed, g_vehicleSpeed, g_seconds, 1);
+			if(expectSpeed == 0.0 && fabs(g_vehicleSpeed <= 0.3))
+				TargetTorque = IncrementPIDspeedCtrl(&g_speedPID,expectSpeed, g_vehicleSpeed, g_seconds, 1);
 			else
-				TargetTorque = IncrementPIDspeedCtrl(&g_speedPID,autoDriveExpextSpeed, g_vehicleSpeed, g_seconds, 0);
+				TargetTorque = IncrementPIDspeedCtrl(&g_speedPID,expectSpeed, g_vehicleSpeed, g_seconds, 0);
 			
 			if(TargetTorque > 255) TargetTorque =255;
 			else if(TargetTorque < -255) TargetTorque = -255;
-            Angle = Industry_info.TargetAngle;
 			
-			//Angle = -rc.ch1*65; //自动驾驶状态下使用遥控器转角进行测试
+			if(expectSpeed > 0) expectSpeedDir = 1;
+			else if(expectSpeed < 0) expectSpeedDir = -1;	
 			
-			if(autoDriveExpextSpeed > 0) expectSpeedDir = 1;
-			else if(autoDriveExpextSpeed < 0) expectSpeedDir = -1;	
+			if(expectSpeedDir * TargetTorque < 0)  // 期望速度方向与期望扭矩方向不一致时，表明需要进行制动操作
+				expectBrakeVal = abs(TargetTorque);
+			else if(expectSpeedDir == 0)		   // 当期望速度为0时，无论如何都需要制动(全扭矩制动)
+				expectBrakeVal = 255;
+			
+
         }
-        /*手动驾驶状态*/
-        else                                                                   
+        /*手动驾驶状态  扭矩控制*/
+        else if(rc.sw2==1) //右侧拨码上位                                                            
         {
-            TargetTorque = rc.ch4*256/660;
-            Angle = -rc.ch1*65;
+            TargetTorque = rc.ch4*255/660;   //rc.ch4 [-660, 660]
+            Angle = -rc.ch1*65;              //rc.ch1 [-660, 660] Angle [-660*65, 660*65]
 			
-			if(TargetTorque > 0) expectSpeedDir = 1;
-			else if(TargetTorque < 0) expectSpeedDir = -1;	
+			if(g_vehicleSpeed > 0 && TargetTorque < 0)
+				expectBrakeVal = -TargetTorque;
+			else if(g_vehicleSpeed < 0 && TargetTorque > 0)
+				expectBrakeVal = TargetTorque;
+			
+			if(g_vehicleSpeed > 0)
+				expectSpeedDir = 1;
+			else if(g_vehicleSpeed < 0)
+				expectSpeedDir = -1;
+			else //g_vehicleSpeed == 0  
+			{
+				//汽车速度为0时，若不经此判断，默认方向为0 驱动器将不执行驱动指令
+				if(TargetTorque > 0)
+					expectSpeedDir = 1;
+				else if(TargetTorque < 0)
+					expectSpeedDir = -1;
+			}
         }
     }
     /*每40ms控制一次前轮*/
@@ -135,10 +170,16 @@ void TIM7_IRQHandler(void)   //TIM7中断
 //        Sonic_SendClientCmd();
 //    }
     /*每50ms发送指令给居逸驱动器和上位机*/
-    if(g_timerCnt10ms%5 == 2)
+    if(g_timerCnt10ms%5 == 3)
     {
-        JY01_Ctrl(rc.sw2,rc.sw1,Sonic_info.SonicAlarm,TargetTorque,RealRPM,Alpha); //发送前轮制动指令
-        Industry_Reply(YQRL_info.RPM,YQRR_info.RPM,Alpha,TargetTorque); //向工控上报车辆状态
+		expectBrakeVal *= 2;     //放大制动力
+		if(expectBrakeVal > 255)  
+			expectBrakeVal = 255;  //制动力限幅
+		else if(expectBrakeVal < 80 && expectBrakeVal > 0) 
+			expectBrakeVal = 80;
+		
+        JY01_Ctrl(rc.sw2,rc.sw1,Sonic_info.SonicAlarm,expectBrakeVal,RealRPM,Alpha); //发送前轮制动指令
+        Industry_Reply(YQRL_info.RPM,YQRR_info.RPM,Alpha,TargetTorque, expectBrakeVal); //向工控上报车辆状态
     }
     /*每80ms发送指令给下位机（从）*/
     if(g_timerCnt10ms%8 == 0)

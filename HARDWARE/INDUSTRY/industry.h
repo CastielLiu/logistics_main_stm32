@@ -21,6 +21,9 @@ extern Industry_info_t	Industry_info;
 void Industry_Init(u32 baudrate);
 void Industry_SendData(u8 *s,u8 len);
 void Get_Industry_Data(Industry_info_t	*Industry_info,u8 *buf, int len);
-void Industry_Reply(s16 LrRealRPM,s16 RrRealRPM,s16 Angle,s16 targetTorque);
+void Industry_Reply(s16 LrRealRPM,s16 RrRealRPM,s16 Angle,s16 targetTorque, u8 targetBrakeVal);
 u8 generateCheckVal(u8* buf, int len);
+void feedbackSpeedPID(void);
 #endif
+
+

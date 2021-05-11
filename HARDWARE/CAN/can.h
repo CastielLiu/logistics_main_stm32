@@ -1,6 +1,8 @@
 #ifndef __CAN_H
 #define __CAN_H	 
-#include "sys.h"	    
+
+#include "sys.h"	
+#include "common.h"
 
 
 /*左后侧远驱驱动器扩展ID定义*/
