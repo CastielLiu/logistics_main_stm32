@@ -164,11 +164,11 @@ void TIM7_IRQHandler(void)   //TIM7中断
         YQRR_TRctrl(rc.sw1,Sonic_info.SonicAlarm,TargetTorque,expectSpeedDir);
     }
 //    /*每70ms控制一次超声波*/
-//    if(flag_1ms%=70)
-//    {
-//        Sonic_SendHostCmd();
+    if(g_timerCnt10ms%9==0)
+    {
+        Sonic_SendHostCmd();
 //        Sonic_SendClientCmd();
-//    }
+    }
     /*每50ms发送指令给居逸驱动器和上位机*/
     if(g_timerCnt10ms%5 == 3)
     {

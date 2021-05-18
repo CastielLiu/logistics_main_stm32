@@ -39,8 +39,7 @@ int main(void)
     while(1)
     {
         MCU_Light = !MCU_Light;
-		MCU_Light3 = !MCU_Light3;
 		
-        delay_ms(200);
+        delay_ms(500);
     }
 }

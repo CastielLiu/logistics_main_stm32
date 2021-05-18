@@ -11,7 +11,7 @@ void Sonic_Init(u32 baudrate)
 {
     //GPIO¶Ë¿ÚÉèÖÃ
     GPIO_InitTypeDef 			GPIO_InitStructure;
-    USART_InitTypeDef 		USART_InitStructure;
+    USART_InitTypeDef 			USART_InitStructure;
     NVIC_InitTypeDef 			NVIC_InitStructure;
     DMA_InitTypeDef				DMA_InitStructure;
 
@@ -163,23 +163,22 @@ void Sonic_SendClientData(u8 *s,u8 len)
     }
 }
 
-
 void Sonic_SendHostCmd(void)
 {
-    u8 cmd[8] = {0x09,0x03,0x00,0x01,0x00,0x08,0x00,0x00};
+    static u8 cmd[8] = {0x09,0x03,0x00,0x01,0x00,0x08,0x14,0x84};
 
-    cmd[6] = (Sonic_CRC16(cmd,6)>>8)&0xFF;
-    cmd[7] = Sonic_CRC16(cmd,6)&0xFF;
+//    cmd[6] = (Sonic_CRC16(cmd,6)>>8)&0xFF;
+//    cmd[7] = Sonic_CRC16(cmd,6)&0xFF;
 
     Sonic_SendHostData(cmd,8);
 }
 
 void Sonic_SendClientCmd(void)
 {
-    u8 cmd[8] = {0x07,0x03,0x00,0x01,0x00,0x08,0x00,0x00};
+    static u8 cmd[8] = {0x09,0x03,0x00,0x01,0x00,0x08,0x14,0x84};
 
-    cmd[6] = (Sonic_CRC16(cmd,6)>>8)&0xFF;
-    cmd[7] = Sonic_CRC16(cmd,6)&0xFF;
+//    cmd[6] = (Sonic_CRC16(cmd,6)>>8)&0xFF;
+//    cmd[7] = Sonic_CRC16(cmd,6)&0xFF;
 
     Sonic_SendClientData(cmd,8);
 }
@@ -277,6 +276,9 @@ void Safety_Ctrl(int Speed,int Alpha)
 }
 
 
+u8 db_usart1_len,db_usart3_len;
+u8 db_cmd7;
+
 void USART1_IRQHandler(void)
 {
     if(USART_GetITStatus(USART1,USART_IT_IDLE)!=RESET)
@@ -287,6 +289,8 @@ void USART1_IRQHandler(void)
         DMA_Cmd(DMA1_Channel5,DISABLE);
         if(Sonic_Buf_MaxLen-DMA_GetCurrDataCounter(DMA1_Channel5)==Sonic_Buf_Len)
             Get_SonicData(&Sonic_info,SonicHost_Buf);
+		
+		db_usart1_len = DMA_GetCurrDataCounter(DMA1_Channel5);
 
         DMA_SetCurrDataCounter(DMA1_Channel5,Sonic_Buf_MaxLen);
         DMA_Cmd(DMA1_Channel5,ENABLE);
@@ -303,6 +307,8 @@ void USART3_IRQHandler(void)
         DMA_Cmd(DMA1_Channel3,DISABLE);
         if(Sonic_Buf_MaxLen-DMA_GetCurrDataCounter(DMA1_Channel3)==Sonic_Buf_Len)
             Get_SonicData(&Sonic_info,SonicClient_Buf);
+		
+		db_usart3_len = DMA_GetCurrDataCounter(DMA1_Channel3);
 
         DMA_SetCurrDataCounter(DMA1_Channel3,Sonic_Buf_MaxLen);
         DMA_Cmd(DMA1_Channel3,ENABLE);
