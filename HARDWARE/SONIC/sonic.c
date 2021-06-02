@@ -4,14 +4,15 @@
 #include "can.h"
 
 Sonic_info_t Sonic_info;
-u8 SonicHost_Buf[Sonic_Buf_Len];
-u8 SonicClient_Buf[Sonic_Buf_Len];
+SonicPositive_info_t	SonicPositive_info;
+u8 SonicHost_Buf[Sonic_Buf_MaxLen];
+u8 SonicClient_Buf[Sonic_Buf_MaxLen];
 
 void Sonic_Init(u32 baudrate)
 {
     //GPIO端口设置
     GPIO_InitTypeDef 			GPIO_InitStructure;
-    USART_InitTypeDef 			USART_InitStructure;
+    USART_InitTypeDef 		USART_InitStructure;
     NVIC_InitTypeDef 			NVIC_InitStructure;
     DMA_InitTypeDef				DMA_InitStructure;
 
@@ -46,6 +47,7 @@ void Sonic_Init(u32 baudrate)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
     GPIO_Init(GPIOB,&GPIO_InitStructure);
+		
 
     /*超声波模块（主）USART1 初始化设置*/
     USART_InitStructure.USART_BaudRate = baudrate;//串口波特率
@@ -183,7 +185,17 @@ void Sonic_SendClientCmd(void)
     Sonic_SendClientData(cmd,8);
 }
 
-
+/*
+*********************************************************************
+* @  name :Get_SonicData
+* @  func :获取超声波数据（DBUS_RTU模式）
+* @ prama :Soniccc_info-超声波解析数据结构
+**********：buf-超声波接收缓冲区
+* @retval :无
+*********************************************************************
+* @attention :
+*********************************************************************
+*/
 void Get_SonicData(Sonic_info_t *Sonic_info,u8 *buf)
 {
     u16 CRC_Data;
@@ -220,28 +232,68 @@ void Get_SonicData(Sonic_info_t *Sonic_info,u8 *buf)
     }
 }
 
+/*
+*********************************************************************
+* @  name :Get_SonicData
+* @  func :获取超声波数据（主动上传模式）
+* @ prama :SonicPositive_info-超声波解析数据结构
+**********：buf-超声波接收缓冲区
+* @retval :无
+*********************************************************************
+* @attention :
+*********************************************************************
+*/
+void Get_SonicDataPositive(SonicPositive_info_t *SonicPositive_info,u8 *buf)
+{
+	u8 index;
+	if((buf[0]==0x55)&&(buf[1]==0x54))
+	{
+		for(index=3;index<=10;index++)
+		{
+			if(buf[index]==0)
+				buf[index]=255;
+		}
+		SonicPositive_info->A1 = buf[3];
+		SonicPositive_info->A2 = buf[4];
+		SonicPositive_info->A3 = buf[5];
+		SonicPositive_info->A4 = buf[6];
+		SonicPositive_info->A5 = buf[7];
+		SonicPositive_info->A6 = buf[8];
+		SonicPositive_info->A7 = buf[9];
+		SonicPositive_info->A8 = buf[10];
+	}
+ else
+	 {
+        memset(SonicPositive_info,0,sizeof(SonicPositive_info_t));
+        return;
+ }
+}
+
+u8 g_sonicEmergenDis = 50; //cm
 
 void Safety_Ctrl(int Speed,int Alpha)
 {
+	
     if(Speed>0)
     {
         if(Alpha<-50)
         {
-            if((Sonic_info.A1<EmergenDis))
+            if((Sonic_info.A1<g_sonicEmergenDis))
                 Sonic_info.SonicAlarm = 1;
             else
                 Sonic_info.SonicAlarm = 0;
+						
         }
         else if((Alpha>-50)&&(Alpha<50))
         {
-            if((Sonic_info.A2<EmergenDis)||(Sonic_info.A3<EmergenDis))
+            if((Sonic_info.A2<g_sonicEmergenDis)||(Sonic_info.A3<g_sonicEmergenDis))
                 Sonic_info.SonicAlarm = 1;
             else
                 Sonic_info.SonicAlarm = 0;
         }
         else if(Alpha>50)
         {
-            if((Sonic_info.A4<EmergenDis))
+            if((Sonic_info.A4<g_sonicEmergenDis))
                 Sonic_info.SonicAlarm = 1;
             else
                 Sonic_info.SonicAlarm = 0;
@@ -251,21 +303,21 @@ void Safety_Ctrl(int Speed,int Alpha)
     {
         if(Alpha<-50)
         {
-            if((Sonic_info.A8<EmergenDis))
+            if((Sonic_info.A8<g_sonicEmergenDis))
                 Sonic_info.SonicAlarm = 1;
             else
                 Sonic_info.SonicAlarm = 0;
         }
         else if((Alpha>-50)&&(Alpha<50))
         {
-            if((Sonic_info.A6<EmergenDis)||(Sonic_info.A7<EmergenDis))
+            if((Sonic_info.A6<g_sonicEmergenDis)||(Sonic_info.A7<g_sonicEmergenDis))
                 Sonic_info.SonicAlarm = 1;
             else
                 Sonic_info.SonicAlarm = 0;
         }
         else if(Alpha>50)
         {
-            if((Sonic_info.A5<EmergenDis))
+            if((Sonic_info.A5<g_sonicEmergenDis))
                 Sonic_info.SonicAlarm = 1;
             else
                 Sonic_info.SonicAlarm = 0;
@@ -287,15 +339,17 @@ void USART1_IRQHandler(void)
         (void)USART1->DR;
 
         DMA_Cmd(DMA1_Channel5,DISABLE);
+		db_usart1_len = DMA_GetCurrDataCounter(DMA1_Channel5);
+		
         if(Sonic_Buf_MaxLen-DMA_GetCurrDataCounter(DMA1_Channel5)==Sonic_Buf_Len)
             Get_SonicData(&Sonic_info,SonicHost_Buf);
 		
-		db_usart1_len = DMA_GetCurrDataCounter(DMA1_Channel5);
-
+		
         DMA_SetCurrDataCounter(DMA1_Channel5,Sonic_Buf_MaxLen);
         DMA_Cmd(DMA1_Channel5,ENABLE);
     }
 }
+
 
 void USART3_IRQHandler(void)
 {
@@ -303,15 +357,78 @@ void USART3_IRQHandler(void)
     {
         (void)USART3->SR;
         (void)USART3->DR;
-
+			
         DMA_Cmd(DMA1_Channel3,DISABLE);
+		db_usart3_len = DMA_GetCurrDataCounter(DMA1_Channel3);
+			
         if(Sonic_Buf_MaxLen-DMA_GetCurrDataCounter(DMA1_Channel3)==Sonic_Buf_Len)
             Get_SonicData(&Sonic_info,SonicClient_Buf);
+		else if(Sonic_Buf_MaxLen-DMA_GetCurrDataCounter(DMA1_Channel3)==Sonic_PositiveBuf_Len)
+			Get_SonicDataPositive(&SonicPositive_info,SonicClient_Buf);
 		
-		db_usart3_len = DMA_GetCurrDataCounter(DMA1_Channel3);
-
         DMA_SetCurrDataCounter(DMA1_Channel3,Sonic_Buf_MaxLen);
         DMA_Cmd(DMA1_Channel3,ENABLE);
     }
+}
+
+//根据超声波检测具体进行决策
+/*return  决策结果
+		 0x01 禁止前进
+		 0x02 禁止后退
+		 0x03 禁止运行
+*/
+
+u8 generateSonicEmergencyDis()
+{
+	float res;
+	//超声波安全距离随速度变化，但不小于50cm
+	
+	if(g_vehicleSpeed > 0)
+		res = g_vehicleSpeed  * 25 +50;
+	else
+		res = -g_vehicleSpeed  * 25 +50;
+	
+	if(res > 255)
+		res = 255;
+	return (u8)res;
+}
+
+u8 SonicDecisionMaking()
+{
+	static s8 lastRes = 0;
+	static double lastBandonForwardTime = 0;
+	static double lastBandonBackwardTime = 0;
+	static float timeout = 1.0; //s
+	
+	double now = g_seconds;
+	u8 result = 0;
+	g_sonicEmergenDis = generateSonicEmergencyDis(); 
+	
+	if((SonicPositive_info.A1 < g_sonicEmergenDis) || (SonicPositive_info.A2 < g_sonicEmergenDis) ||
+	    (SonicPositive_info.A3 < g_sonicEmergenDis) || (SonicPositive_info.A4 < g_sonicEmergenDis)) //禁止前进
+	{
+		result |= 0x01;
+		lastBandonForwardTime = now;
+	}
+	if((SonicPositive_info.A5 < g_sonicEmergenDis) || (SonicPositive_info.A6 < g_sonicEmergenDis) ||
+	    (SonicPositive_info.A7 < g_sonicEmergenDis) || (SonicPositive_info.A8 < g_sonicEmergenDis)) //禁止后退
+	{
+		result |= 0x02;
+		lastBandonBackwardTime = now;
+	}
+	
+	if((result&0x01) == 0) //可前进
+	{
+		if(now - lastBandonForwardTime < timeout)
+			result |= 0x01;
+	}
+	if((result&0x02) == 0) //可后退
+	{
+		if(now - lastBandonBackwardTime < timeout)
+			result |= 0x02;
+	}
+
+	lastRes = result;	
+	return result;
 }
 

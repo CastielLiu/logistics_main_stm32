@@ -5,12 +5,14 @@
 
 typedef struct 
 {
-	float kp,ki,kd;
+volatile float kp;
+volatile float ki;
+volatile float kd;
 }PID_param_t;
 
 extern PID_param_t g_speedPID; //速度PID参数
 
-void init_pid_params(PID_param_t* pid, float kp, float ki, float kd);
+void init_pid_params(PID_param_t* const pid, float kp, float ki, float kd);
 
 int PositionPID (int Target,int Real);
 

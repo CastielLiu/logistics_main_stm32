@@ -17,7 +17,7 @@ void DMS055A_Init(u32 baudrate)
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA2,ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4,ENABLE);
 
-#if AUTO_RXTX_485 == 0 //不自动收发，手动配置为接收模式，PD7拉高
+	#if AUTO_RXTX_485 == 0 //不自动收发，手动配置为发送模式，PD7拉高，控制转向电机
 	//PD7 收发控制引脚
 	GPIO_InitStructure.GPIO_Pin=GPIO_Pin_7; 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
@@ -63,7 +63,7 @@ void DMS055A_Init(u32 baudrate)
     DMA_InitStructure.DMA_MemoryBaseAddr = (u32)DMS055A_Buf;
     DMA_InitStructure.DMA_PeripheralBaseAddr = (u32)&UART4->DR;
     DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
-    DMA_InitStructure.DMA_BufferSize = DMS055A_Buf_MaxLen;
+    DMA_InitStructure.DMA_BufferSize = DMS055A_Buf_Len;
     DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
     DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
     DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
@@ -255,12 +255,13 @@ void UART4_IRQHandler(void)
     {
         (void)UART4->SR;
         (void)UART4->DR;
+		DMA_Cmd(DMA2_Channel3,DISABLE);
 			
-        if(DMS055A_Buf[0]==0x01)
+        if(DMS055A_Buf[0]==0x01) //设备地址(前轮转向驱动器)
         {
             Get_DMS055A_Data(&DMS055A_info,DMS055A_Buf);
         }
-        DMA_SetCurrDataCounter(DMA2_Channel3,DMS055A_Buf_MaxLen);
+        DMA_SetCurrDataCounter(DMA2_Channel3,DMS055A_Buf_Len);
         DMA_Cmd(DMA2_Channel3,ENABLE);
     }
 }

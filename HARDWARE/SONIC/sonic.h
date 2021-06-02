@@ -2,6 +2,8 @@
 #define __SONIC_H
 
 #include "sys.h"
+#include "timer.h"
+#include "stdlib.h"
 
 
 /* CRC 高位字节值表 */
@@ -65,9 +67,9 @@ static char SonicCRCLo[] = {
 } ;
 
 
-#define Sonic_Buf_MaxLen		50
+#define Sonic_Buf_MaxLen		30
 #define Sonic_Buf_Len 			21
-#define EmergenDis					100
+#define Sonic_PositiveBuf_Len		15	//主动上传数据长度
 
 typedef struct {
 
@@ -90,7 +92,22 @@ typedef struct {
 
 } Sonic_info_t;
 
+typedef struct
+{
+	  u16 A1;
+    u16 A2;
+    u16 A3;
+    u16 A4;
+    u16 A5;
+    u16 A6;
+    u16 A7;
+    u16 A8;
+	  u8  SonicAlarm;
+	
+}SonicPositive_info_t;
+
 extern Sonic_info_t Sonic_info;
+extern SonicPositive_info_t	SonicPositive_info;
 
 void Sonic_Init(u32 baudrate);
 u16 Sonic_CRC16(u8 *puchMsg,u16 usDataLen);
@@ -100,5 +117,6 @@ void Sonic_SendHostCmd(void);
 void Sonic_SendClientCmd(void);
 void Get_SonicData(Sonic_info_t *Sonic_info,u8 *buf);
 void Safety_Ctrl(int Speed,int Alpha);
+u8 SonicDecisionMaking(void);
 
 #endif

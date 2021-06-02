@@ -4,7 +4,8 @@
 
 PID_param_t g_speedPID;
 
-void init_pid_params(PID_param_t* pid, float kp, float ki, float kd)
+
+void init_pid_params(PID_param_t* const pid, float kp, float ki, float kd)
 {
 	pid->kd = kd;
 	pid->ki = ki;

@@ -15,6 +15,7 @@ extern u8 Industry_TxMsg[11];
 extern uint32_t g_timerCnt10ms;
 extern double g_seconds;
 extern double g_lastValidCmdTime;
+extern float g_vehicleSpeed;
 
 #endif
 

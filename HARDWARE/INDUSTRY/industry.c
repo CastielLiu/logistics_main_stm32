@@ -5,7 +5,7 @@
 #include "string.h"
 #include "timer.h"
 
-u8 Industry_Buf[Industry_Buf_Len];
+u8 Industry_Buf[Industry_Buf_MaxLen];
 Industry_info_t Industry_info;
 
 void Industry_Init(u32 baudrate)
@@ -106,7 +106,7 @@ void Get_Industry_Data(Industry_info_t	*Industry_info,u8 *buf, int len)
             Industry_info->TargetAngle = (buf[7]<<8)|buf[8];
             Industry_info->TargetAngle = (Industry_info->TargetAngle-30000);
 					
-            Industry_info->TargetAngle = Industry_info->TargetAngle*660/1230*65;
+            Industry_info->TargetAngle = Industry_info->TargetAngle*660/1025*65;
 			/*转角限幅*/
 			if(Industry_info->TargetAngle>660*65)
 				Industry_info->TargetAngle = 660*65;
@@ -118,9 +118,9 @@ void Get_Industry_Data(Industry_info_t	*Industry_info,u8 *buf, int len)
         }
 		else if(pkgId == 0x05 && len >= 11) //设置速度PID参数
 		{
-			g_speedPID.kp = ((buf[4] * 256 + buf[5]) - 30000)/100.0;
-			g_speedPID.ki = ((buf[6] * 256 + buf[7]) - 30000)/100.0;
-			g_speedPID.kd = ((buf[8] * 256 + buf[9]) - 30000)/100.0;
+//			g_speedPID.kp = ((buf[4] * 256 + buf[5]) - 30000)/100.0;
+//			g_speedPID.ki = ((buf[6] * 256 + buf[7]) - 30000)/100.0;
+//			g_speedPID.kd = ((buf[8] * 256 + buf[9]) - 30000)/100.0;
 			feedbackSpeedPID();
 		}
 		else if(pkgId == 0x06) //获取速度PID参数
