@@ -197,6 +197,7 @@ void YQFR_TRctrl(u8 RunSta,u8 SonicSta,s16 TR)
 
 s8 g_expectSpeedDir;
 s16 g_TR;
+u8 RLCanSta,CanSta;
 void YQRL_TRctrl(u8 RunSta,u8 SonicSta,s16 TR, s8 expectSpeedDir)
 {
 	u8 CtrlMsg[8] = {0,0,0,0,0,0,0,0};
@@ -296,7 +297,11 @@ void YQRL_TRctrl(u8 RunSta,u8 SonicSta,s16 TR, s8 expectSpeedDir)
         CtrlMsg[6] = 0x10;
         CtrlMsg[7] = 0xFF;
     }
-    Can_SendExtMsg(CtrlMsg,8,YQRL_EXTID0);
+   RLCanSta = Can_SendExtMsg(CtrlMsg,8,YQRL_EXTID0);
+	
+	if(RLCanSta==0)
+		CanSta ++;
+		
 }
 
 /*

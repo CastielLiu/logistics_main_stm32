@@ -51,10 +51,9 @@ typedef __packed struct
     } kb;
 } rc_info_t;
 
-#define DBUS_BUFLEN	18
+#define REMOTER_BUFLEN 	18
 
 extern rc_info_t rc;
-extern uint8_t  dbus_buf[DBUS_BUFLEN];
 
 void Remoter_Uart_Init(u32 baudrate);
 void Remoter_Uart_SendData(u8 *s,u8 len);

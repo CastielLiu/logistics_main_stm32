@@ -20,5 +20,7 @@
 	
 #endif
 
+#define ENABLE_SONIC 1   //³¬Éù²¨Ê¹ÄÜ¿ØÖÆ
+
 #endif
 

@@ -4,6 +4,7 @@
 #include "sys.h"	
 #include "common.h"
 
+extern u8 CanSta;
 
 /*左后侧远驱驱动器扩展ID定义*/
 #define YQRL_EXTID0				0x10F8E3F3	//下位机--->>>左后侧驱动器。下位机控制驱动器

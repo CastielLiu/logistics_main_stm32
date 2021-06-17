@@ -15,8 +15,8 @@ typedef struct{
 
 extern Industry_info_t	Industry_info;
 
-#define Industry_Buf_Len	    11
-#define Industry_Buf_MaxLen		50
+//#define Industry_Buf_Len	    11
+#define Industry_Buf_MaxLen		20
 
 void Industry_Init(u32 baudrate);
 void Industry_SendData(u8 *s,u8 len);

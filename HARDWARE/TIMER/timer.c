@@ -43,10 +43,11 @@ void TIM7_Init(void)
     TIM_Cmd(TIM7, ENABLE);  //使能TIMx
 }
 
-int Angle,Alpha,RealRPM,TargetTorque;
+float Angle,Alpha,RealRPM,TargetTorque;
 float expectSpeed = 0.0;
+
 const float munualCtrlMaxSpeed = 2.5; //m/s
-float g_vehicleSpeed = 0.0;
+float g_vehicleSpeed = 0.0;           //m/s
 
 double g_seconds = 0.0;          //从定时器开启经过的时间
 uint32_t g_timerCnt10ms = 0;     //10ms计数器
@@ -54,6 +55,7 @@ double g_lastValidCmdTime = 0.0; //上一次接收有效指令的时间,当指令超时后需紧急制
 
 s8 expectSpeedDir = 0;  //必须初始化为0
 u16 expectBrakeVal = 0;  //必须初始化为0
+u8  sonicDecisionMakingResult = 0;
 	
 void TIM7_IRQHandler(void)   //TIM7中断
 {
@@ -70,7 +72,7 @@ void TIM7_IRQHandler(void)   //TIM7中断
     {
         RealRPM = (YQRL_info.RPM+YQRR_info.RPM)/2;	//后轮获取转速r/min
 		g_vehicleSpeed = (YQRL_info.speed + YQRR_info.speed)/2; // m/s
-        Alpha = Angle*12.3/66/65;		//根据目标转角换算成实际前轮转角,单位(0.1deg)
+        Alpha = Angle*10.25/66/65;		//根据目标转角换算成实际前轮转角,单位(0.1deg)
 		TargetTorque = 0;
 		
         if(rc.sw2==3 ||  //右侧拨码中位 /*自动驾驶状态  PID速度控制*/
@@ -85,14 +87,14 @@ void TIM7_IRQHandler(void)   //TIM7中断
 				{
 					expectSpeed = 0.0;
 				}
-				
+				targetAngleTransform(Industry_info);//目标指令角度转换为适应此驱动器的指令
 				Angle = Industry_info.TargetAngle;
 				//Angle = -rc.ch1*65; //自动驾驶状态下使用遥控器转角进行测试
 			}
 			else  //手动
 			{
 				expectSpeed = 1.0 * rc.ch4/660 * munualCtrlMaxSpeed;
-				Angle = -rc.ch1*65;	//rc.ch1 [-660, 660] Angle [-660*65, 660*65]
+				Angle = -rc.ch1*50;	//rc.ch1 [-660, 660] Angle [-660*50, 660*50]
 			}
 			
 			//速度 PID
@@ -118,7 +120,7 @@ void TIM7_IRQHandler(void)   //TIM7中断
         else if(rc.sw2==1) //右侧拨码上位                                                            
         {
             TargetTorque = rc.ch4*255/660;   //rc.ch4 [-660, 660]
-            Angle = -rc.ch1*65;              //rc.ch1 [-660, 660] Angle [-660*65, 660*65]
+            Angle = -rc.ch1*50;              //rc.ch1 [-660, 660] Angle [-660*50, 660*50]
 			
 			if(g_vehicleSpeed > 0 && TargetTorque < 0)
 				expectBrakeVal = -TargetTorque;
@@ -139,6 +141,24 @@ void TIM7_IRQHandler(void)   //TIM7中断
 			}
         }
     }
+#if (ENABLE_SONIC == 1)
+	if(g_timerCnt10ms%7 == 0) /*每70ms执行一次超声波决策*/
+		sonicDecisionMakingResult = SonicDecisionMaking();
+	
+	//当超声波报警使车辆无法运行时需重置pid参数以防止超声波解除报警后由于误差累计导致的大扭矩
+	if(sonicDecisionMakingResult&0x01 && expectSpeedDir==1)//禁止前进且当前期望速度方向为正
+	{
+		TargetTorque = -255;
+		IncrementPIDspeedCtrl(&g_speedPID,expectSpeed, g_vehicleSpeed, g_seconds, 1); //重置pid
+	}
+	if(sonicDecisionMakingResult&0x02 && expectSpeedDir==-1)//禁止后退且当前期望速度方向为负
+	{
+		TargetTorque = 255;
+		IncrementPIDspeedCtrl(&g_speedPID,expectSpeed, g_vehicleSpeed, g_seconds, 1); //重置pid
+	}
+
+#endif
+
     /*每40ms控制一次前轮*/
     if(g_timerCnt10ms%4 == 0)
     {
@@ -146,6 +166,7 @@ void TIM7_IRQHandler(void)   //TIM7中断
             DMS055A_SendPosition(1);
         else
             DMS055A_SendPosition(Angle);
+				// + g_sensorAngle
     }
 //		/*每45ms读取一次转向电机绝对位置*/
 //		if(flag_1ms%=45)
@@ -153,22 +174,12 @@ void TIM7_IRQHandler(void)   //TIM7中断
 //			DMS055A_ReadCurrent();
 //		}
 
-    /*每50ms控制一次左后轮*/
-    if(g_timerCnt10ms%5 == 0)
-    {	
+    if(g_timerCnt10ms%5 == 0)/*每50ms控制一次左后轮*/
         YQRL_TRctrl(rc.sw1,Sonic_info.SonicAlarm,TargetTorque,expectSpeedDir);
-    }
-    /*每50ms控制一次右后轮*/
-    if(g_timerCnt10ms%5 == 1)
-    {
+ 
+    if(g_timerCnt10ms%5 == 1) /*每50ms控制一次右后轮*/
         YQRR_TRctrl(rc.sw1,Sonic_info.SonicAlarm,TargetTorque,expectSpeedDir);
-    }
-//    /*每70ms控制一次超声波*/
-    if(g_timerCnt10ms%9==0)
-    {
-        Sonic_SendHostCmd();
-//        Sonic_SendClientCmd();
-    }
+	
     /*每50ms发送指令给居逸驱动器和上位机*/
     if(g_timerCnt10ms%5 == 3)
     {
@@ -181,16 +192,10 @@ void TIM7_IRQHandler(void)   //TIM7中断
         JY01_Ctrl(rc.sw2,rc.sw1,Sonic_info.SonicAlarm,expectBrakeVal,RealRPM,Alpha); //发送前轮制动指令
         Industry_Reply(YQRL_info.RPM,YQRR_info.RPM,Alpha,TargetTorque, expectBrakeVal); //向工控上报车辆状态
     }
-    /*每80ms发送指令给下位机（从）*/
-    if(g_timerCnt10ms%8 == 0)
-    {
-        Client_Ctrl(rc.sw2,rc.sw1,Sonic_info.SonicAlarm,RealRPM,Alpha);
-    }
+    
+    if(g_timerCnt10ms%8 == 0) /*每80ms发送指令给下位机（从）*/
+        Client_Ctrl(rc.sw2,rc.sw1,sonicDecisionMakingResult,RealRPM,Alpha);
+ 
 	
-	/*每100ms检查一下控制指令是否超时(上次有效指令是否足够新)*/
-	if(g_timerCnt10ms%10 ==0 && g_seconds-g_lastValidCmdTime >0.1)
-	{
-		
-	}
 }
 

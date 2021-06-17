@@ -4,9 +4,6 @@
 #include "delay.h"
 #include "led.h"
 
-rc_info_t rc;
-uint8_t   dbus_buf[DBUS_BUFLEN];
-
 void Remoter_Uart_Init(u32 baudrate)
 {
     //GPIO端口设置
@@ -129,25 +126,38 @@ static void Get_DR16_Data(rc_info_t *rc, uint8_t *buff)
     rc->kb.key_code = buff[14] | buff[15] << 8; // key borad code
 }
 
+rc_info_t rc;
+u8 dbus_buf[REMOTER_BUFLEN];
+u8 dbRemotorErrCnt = 0;
 
-u8 Remoter_Rx;
 void UART5_IRQHandler(void)
 {
+	static u8 dataIndex = 0;
+	
     if(USART_GetITStatus(UART5,USART_IT_RXNE)!=RESET)		//若产生串口5接收中断
     {
         USART_ClearITPendingBit(UART5,USART_IT_RXNE);		//清除接收中断标志
+		
+		//数组将溢出
+		if(dataIndex >= REMOTER_BUFLEN)
+		{
+			dataIndex = 0;
+			dbRemotorErrCnt ++ ;
+		}
 
-        dbus_buf[Remoter_Rx] = USART_ReceiveData(UART5);	//接收串口5数据到buff缓冲区
-        Remoter_Rx ++;
+        dbus_buf[dataIndex] = USART_ReceiveData(UART5);	//接收串口5数据到buff缓冲区
+        dataIndex ++;
     }
+	
+	
     if(USART_GetITStatus(UART5,USART_IT_IDLE)!=RESET)
     {
         (void)UART5->SR;
         (void)UART5->DR;
 
-        if(Remoter_Rx==18)
+        if(REMOTER_BUFLEN == dataIndex)
             Get_DR16_Data(&rc,dbus_buf);
-        Remoter_Rx = 0;
+        dataIndex = 0;
     }
 }
 

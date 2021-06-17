@@ -20,10 +20,10 @@ YQ_info_t YQFL_info,YQFR_info,YQRL_info,YQRR_info;
 u8 CAN_Mode_Init(u8 tsjw,u8 tbs2,u8 tbs1,u16 brp,u8 mode)
 {
     GPIO_InitTypeDef 				GPIO_InitStructure;
-    CAN_InitTypeDef        	CAN_InitStructure;
-    CAN_FilterInitTypeDef  	CAN_FilterInitStructure;
+    CAN_InitTypeDef        			CAN_InitStructure;
+    CAN_FilterInitTypeDef  			CAN_FilterInitStructure;
 #if CAN_RX0_INT_ENABLE
-    NVIC_InitTypeDef  			NVIC_InitStructure;
+    NVIC_InitTypeDef  				NVIC_InitStructure;
 #endif
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_CAN1, ENABLE);//使能CAN1时钟
@@ -60,10 +60,10 @@ u8 CAN_Mode_Init(u8 tsjw,u8 tbs2,u8 tbs1,u16 brp,u8 mode)
     //CAN单元设置
     CAN_InitStructure.CAN_TTCM=DISABLE;			//非时间触发通信模式
     CAN_InitStructure.CAN_ABOM=DISABLE;			//软件自动离线管理
-    CAN_InitStructure.CAN_AWUM=DISABLE;			//睡眠模式通过软件唤醒(清除CAN->MCR的SLEEP位)
-    CAN_InitStructure.CAN_NART=DISABLE;			//禁止报文自动传送
+    CAN_InitStructure.CAN_AWUM=ENABLE;			//睡眠模式通过软件唤醒(清除CAN->MCR的SLEEP位)
+    CAN_InitStructure.CAN_NART=ENABLE;			//允许报文自动传送
     CAN_InitStructure.CAN_RFLM=DISABLE;		 	//报文不锁定,新的覆盖旧的
-    CAN_InitStructure.CAN_TXFP=DISABLE;			//优先级由报文标识符决定
+    CAN_InitStructure.CAN_TXFP=ENABLE;			//优先级由报文标识符决定
     CAN_InitStructure.CAN_Mode= mode;	        //模式设置： mode:0,普通模式;1,回环模式;
     //设置波特率
     CAN_InitStructure.CAN_SJW=tsjw;				//重新同步跳跃宽度(Tsjw)为tsjw+1个时间单位  CAN_SJW_1tq	 CAN_SJW_2tq CAN_SJW_3tq CAN_SJW_4tq
@@ -253,12 +253,13 @@ u8 Can_SendStdMsg(u8 *msg,u8 len,u32 stdId)
 * @attention :
 *********************************************************************
   */
+ CanTxMsg 	TxMessage;
 u8 Can_SendExtMsg(u8 *msg,u8 len,u32 extID)
 {
     u8 mbox;
     u16 i=0;
-    CanTxMsg 	TxMessage;
 
+	TxMessage.StdId = 0x12;
     TxMessage.ExtId = extID;				// 设置扩展标示符
     TxMessage.IDE = CAN_Id_Extended;        //扩展帧
     TxMessage.RTR=CAN_RTR_Data;			    // 数据帧
