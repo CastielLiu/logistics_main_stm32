@@ -43,11 +43,15 @@ void TIM7_Init(void)
     TIM_Cmd(TIM7, ENABLE);  //使能TIMx
 }
 
-float Angle,Alpha,RealRPM,TargetTorque;
+float TargetAngle,Alpha,RealRPM,TargetTorque;
 float expectSpeed = 0.0;
 
 const float munualCtrlMaxSpeed = 2.5; //m/s
 float g_vehicleSpeed = 0.0;           //m/s
+float g_sensorVoltage = 0.0;
+u8    g_angleSensorInited = 0;   //必须初始化为0
+float g_roadwheelAngle = 0.0;
+float g_firstRoadwheelAngle;     //上电时前轮的转角值
 
 double g_seconds = 0.0;          //从定时器开启经过的时间
 uint32_t g_timerCnt10ms = 0;     //10ms计数器
@@ -72,7 +76,7 @@ void TIM7_IRQHandler(void)   //TIM7中断
     {
         RealRPM = (YQRL_info.RPM+YQRR_info.RPM)/2;	//后轮获取转速r/min
 		g_vehicleSpeed = (YQRL_info.speed + YQRR_info.speed)/2; // m/s
-        Alpha = Angle*10.25/66/65;		//根据目标转角换算成实际前轮转角,单位(0.1deg)
+        Alpha = TargetAngle*10.25/66/65;		//根据目标转角换算成实际前轮转角,单位(0.1deg)
 		TargetTorque = 0;
 		
         if(rc.sw2==3 ||  //右侧拨码中位 /*自动驾驶状态  PID速度控制*/
@@ -87,14 +91,13 @@ void TIM7_IRQHandler(void)   //TIM7中断
 				{
 					expectSpeed = 0.0;
 				}
-				targetAngleTransform(Industry_info);//目标指令角度转换为适应此驱动器的指令
-				Angle = Industry_info.TargetAngle;
+				TargetAngle = Industry_info.TargetAngle;
 				//Angle = -rc.ch1*65; //自动驾驶状态下使用遥控器转角进行测试
 			}
 			else  //手动
 			{
 				expectSpeed = 1.0 * rc.ch4/660 * munualCtrlMaxSpeed;
-				Angle = -rc.ch1*50;	//rc.ch1 [-660, 660] Angle [-660*50, 660*50]
+				TargetAngle = -rc.ch1 /660.0 * 12.3;	//rc.ch1 [-660, 660]
 			}
 			
 			//速度 PID
@@ -113,14 +116,12 @@ void TIM7_IRQHandler(void)   //TIM7中断
 				expectBrakeVal = abs(TargetTorque);
 			else if(expectSpeedDir == 0)		   // 当期望速度为0时，无论如何都需要制动(全扭矩制动)
 				expectBrakeVal = 255;
-			
-
         }
         /*手动驾驶状态  扭矩控制*/
         else if(rc.sw2==1) //右侧拨码上位                                                            
         {
             TargetTorque = rc.ch4*255/660;   //rc.ch4 [-660, 660]
-            Angle = -rc.ch1*50;              //rc.ch1 [-660, 660] Angle [-660*50, 660*50]
+            TargetAngle = -rc.ch1 /660.0 * 12.3;              //rc.ch1 [-660, 660] Angle [-660*50, 660*50]
 			
 			if(g_vehicleSpeed > 0 && TargetTorque < 0)
 				expectBrakeVal = -TargetTorque;
@@ -162,11 +163,8 @@ void TIM7_IRQHandler(void)   //TIM7中断
     /*每40ms控制一次前轮*/
     if(g_timerCnt10ms%4 == 0)
     {
-        if(Angle==0)
-            DMS055A_SendPosition(1);
-        else
-            DMS055A_SendPosition(Angle);
-				// + g_sensorAngle
+		if(g_angleSensorInited)
+			setRoadWheelAngle(TargetAngle);
     }
 //		/*每45ms读取一次转向电机绝对位置*/
 //		if(flag_1ms%=45)

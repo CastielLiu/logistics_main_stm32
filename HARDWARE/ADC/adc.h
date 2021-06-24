@@ -31,6 +31,8 @@ extern u16 h_ADC_PC1;
 extern u16 h_ADC_PC2;
 extern u16 h_ADC_PC3;
 
+u16 Get_Adc_Average(u8 ch,u8 times);
+u16 Get_Adc(u8 ch);
 void Adc_Init(void);
 
 #endif

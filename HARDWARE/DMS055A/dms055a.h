@@ -4,6 +4,7 @@
 #include "sys.h"
 #include "common.h"
 #include "industry.h"
+#include "adc.h"
 
 /* CRC 高位字节值表*/
 static unsigned char auchCRCHi[] = {
@@ -54,7 +55,6 @@ typedef struct{
 }DMS055A_info_t;
 
 extern DMS055A_info_t  DMS055A_info;
-
 	
 /*DMS055A 485通信模式*/
 void DMS055A_Init(u32 baudrate);
@@ -64,9 +64,14 @@ void DMS055A_SendPosition(int Target);
 void DMS055A_FindEN(void);
 void DMS055A_ReadCurrent(void);
 void DMS055A_ReadPosition(void);
-void targetAngleTransform(Industry_info_t	Industry_info);
-void sendTargetAngle(float t_angle);
 unsigned short DMS055A_CRC16(unsigned char *puchMsg,unsigned short usDataLen);
+
+float getRoadWheelAngle(void);
+void setMotorAngle(float angle);
+void setRoadWheelAngle(float angle);
+void DMS055A_SendIncrement(int Target);
+
+extern float g_angleSensorVoltage;
 
 
 #endif

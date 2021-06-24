@@ -2,8 +2,9 @@
 #include "remoter.h"
 #include "math.h"
 #include "string.h"
+#include "timer.h"
 
-
+#define MAX_ROADANGLE 12.3
 u8 DMS055A_Buf[DMS055A_Buf_Len];
 
 void DMS055A_Init(u32 baudrate)
@@ -119,21 +120,89 @@ void Get_DMS055A_Data(DMS055A_info_t *DMS055A_info,u8 *buf)
     }
 }
 
+#define STEER_MOTOR_INCREMENT_CONTROL 1
+
+//设置前轮转角值
+void setRoadWheelAngle(float angle)
+{
+#if STEER_MOTOR_INCREMENT_CONTROL
+	float angle_err = angle - g_roadwheelAngle;
+	if(fabs(angle_err) < 0.1)
+		angle_err = 0.0;
+	DMS055A_SendIncrement(angle_err*1000);
+	
+#else
+	float motorAngle =  (angle - g_firstRoadwheelAngle)*17.0/28; //电机输出轴角度
+	DMS055A_SendPosition(motorAngle);
+#endif
+}
+
+//设置转向电机输出轴角度值(上电默认位置为0度)
+//angle 电机输出轴角度
+void setMotorAngle(float angle)
+{
+	//将角度转换为脉冲数，通过传动比进行计算
+	DMS055A_SendPosition(angle * 711.11); //4000*64/360
+}
+
+
+/*@brief 增量式控制转向电机
+* @prama :Target: 脉冲个数
+*/
+void DMS055A_SendIncrement(int Target)
+{
+	u8  modbus_data[13] = {0x01,0x10,0x00,0xC,0x00,0x02,0x04,0x00,0x00,0x00,0x00,0x00,0x00};
+	u8  PU24_31,PU16_23,PU8_15,PU0_7;
+	u16 crc_data;
+	
+	/*负脉冲数转换成32位16进制无符号脉冲数*/
+    if(Target<0)
+    {
+        Target = 0x7FFFFFFF+(Target+1);
+        PU24_31 = (Target/(256*65536))+0x80;
+    }
+    else
+    {
+        PU24_31 =(Target/(256*65536));
+    }
+    PU16_23 = (Target/65536)%256;
+    PU8_15 = (Target/256)%256;
+    PU0_7 = Target%256;
+
+    /*将转换好的脉冲数放入数组中*/
+    modbus_data[7] = PU8_15;
+    modbus_data[8] = PU0_7;
+    modbus_data[9] = PU24_31;
+    modbus_data[10] = PU16_23;
+	
+
+	crc_data = DMS055A_CRC16(modbus_data,11);
+
+    modbus_data[11] = crc_data/256%256;
+    modbus_data[12] = crc_data%256;
+
+    /*将数据包发送给前轮驱动器*/
+    DMS055A_SendData(modbus_data,13);
+}
+
 /*
 *********************************************************************
 * @  name :DMS055A_SendPosition
 * @  func :控制前轮驱动电机至目标位置（绝对位置）
-* @ prama :Target:目标位置
+* @ prama :Target:目标位置(脉冲数)
 * @retval :无
 *********************************************************************
 * @attention :遥控传过来的为有符号数，需要转换成无符号数通过串口发送
 *********************************************************************
 */
+int steerMotorPulseNum;
 void DMS055A_SendPosition(int Target)
 {
     u8  modbus_data[13] = {0x01,0x10,0x00,0x16,0x00,0x02,0x04,0x00,0x00,0x00,0x00,0x00,0x00};
     u8  PU24_31,PU16_23,PU8_15,PU0_7;
     u16 crc_data;
+	
+	steerMotorPulseNum = Target;
 
     /*负脉冲数转换成32位16进制无符号脉冲数*/
     if(Target<0)
@@ -211,6 +280,7 @@ void DMS055A_ReadCurrent(void)
     DMS055A_SendData(ReadCurrent,8);
 }
 
+//请求电机位置
 void DMS055A_ReadPosition(void)
 {
     u8 ReadPos[8] = {0x01,0x03,0x00,0x16,0x00,0x02,0x25,0xCF};
@@ -218,29 +288,19 @@ void DMS055A_ReadPosition(void)
     DMS055A_SendData(ReadPos,8);
 }
 
-/*
-******************************
-* @ 
-******************************
-*/
-void targetAngleTransform(Industry_info_t	Industry_info)
+
+
+float g_angleSensorVoltage = 0.0;
+//根据转角传感器电压值计算前轮转角值
+float getRoadWheelAngle()
 {
-		Industry_info.TargetAngle = Industry_info.TargetAngle*660/1025*65*100.0;
-		/*转角限幅*/
-		if(Industry_info.TargetAngle>660*65)
-			Industry_info.TargetAngle = 660*65;
-		else if(Industry_info.TargetAngle<-660*65)
-			Industry_info.TargetAngle = -660*65;
+	float k = (ANGLE_SENSOR_MAX_VOLTAGE-ANGLE_SENSOR_MID_VOLTAGE)/(ROADWHEEL_ANGLE_MAX_DEG-0.0);
+	g_angleSensorVoltage = Get_Adc_Average(ADC_Channel_13,10) * 3.3 / 4095.0;
+	
+	//如电压增大方向与角度增大方向不一致，返回值需添加负号
+	return -((g_angleSensorVoltage - ANGLE_SENSOR_MID_VOLTAGE)/k); 
 }
 
-//获取g_sensorAngle的值
-//void sendTargetAngle(float t_angle)
-//{
-//	//float sensor_angle = 0.0;
-////	float angle = ;
-////	
-////	DMS055A_SendPosition(angle)
-//}
 
 /*
 *********************************************************************

@@ -16,7 +16,10 @@ extern uint32_t g_timerCnt10ms;
 extern double g_seconds;
 extern double g_lastValidCmdTime;
 extern float g_vehicleSpeed;
-extern float g_sensorAngle;
+extern u8    g_angleSensorInited;
+extern float g_firstRoadwheelAngle;
+extern float g_roadwheelAngle;
+extern float g_sensorVoltage;
 
 #endif
 

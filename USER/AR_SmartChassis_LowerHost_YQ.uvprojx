@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_HD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\USER;..\CORE;..\STM32F10x_FWLib\inc;..\SYSTEM\delay;..\SYSTEM\sys;..\HARDWARE\LED;..\HARDWARE\REMOTER;..\HARDWARE\ADC;..\HARDWARE\DMS055A;..\HARDWARE\TIMER;..\HARDWARE\KEY;..\HARDWARE\CAN;..\HARDWARE\SONIC;..\HARDWARE\YQ;..\HARDWARE\INDUSTRY;..\HARDWARE\CLIENT;..\HARDWARE\JY01;..\HARDWARE\PID;..\SYSTEM\usart;..\HARDWARE\WDG</IncludePath>
+              <IncludePath>..\USER;..\CORE;..\STM32F10x_FWLib\inc;..\SYSTEM\delay;..\SYSTEM\sys;..\HARDWARE\LED;..\HARDWARE\REMOTER;..\HARDWARE\ADC;..\HARDWARE\DMS055A;..\HARDWARE\TIMER;..\HARDWARE\KEY;..\HARDWARE\CAN;..\HARDWARE\SONIC;..\HARDWARE\YQ;..\HARDWARE\INDUSTRY;..\HARDWARE\CLIENT;..\HARDWARE\JY01;..\HARDWARE\PID;..\SYSTEM\usart;..\HARDWARE\WDG;..\HARDWARE\DMA</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -647,6 +647,11 @@
               <FileName>wdg.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\WDG\wdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\DMA\dma.c</FilePath>
             </File>
           </Files>
         </Group>
