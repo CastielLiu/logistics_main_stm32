@@ -15,7 +15,7 @@
 #include "adc.h"
 
 int main(void)
-{	
+{
 	int delay_cnt = 50;
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组2
 	//初始化CAN接口，与JY01通信，控制后轮  //CAN_Mode_LoopBack  CAN_Mode_Normal
@@ -37,7 +37,13 @@ int main(void)
 	
     while(1)
     {
-        MCU_Light = !MCU_Light;
+		static float last_time = 0.0;
+		if(g_seconds - last_time >= 0.5)
+		{
+			MCU_Light = !MCU_Light;
+			last_time = g_seconds;
+		}
+        
 		g_roadwheelAngle = getRoadWheelAngle(); //循环获取前轮转角角度值
 		
 		if(!g_angleSensorInited)

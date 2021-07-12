@@ -20,6 +20,7 @@ extern u8    g_angleSensorInited;
 extern float g_firstRoadwheelAngle;
 extern float g_roadwheelAngle;
 extern float g_sensorVoltage;
+extern u32 g_currentPulse;
 
 #endif
 

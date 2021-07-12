@@ -16,78 +16,46 @@
 void YQFL_TRctrl(u8 RunSta,u8 SonicSta,s16 TR)
 {
     u8 CtrlMsg[8] = {0,0,0,0,0,0,0,0};
-		
-		/*油门限幅*/
-		if(TR>MAX_TR)
-			TR = MAX_TR;
-		if(TR<-MAX_TR)
-			TR = -MAX_TR;
+	
+	/*油门限幅*/
+	if(TR>MAX_TR)
+		TR = MAX_TR;
+	if(TR<-MAX_TR)
+		TR = -MAX_TR;
 
-    /*运行状态*/
-    if(RunSta==3)
-    {
-        /*超声波正常*/
-        if(SonicSta==0)
-        {
-            if(TR>0)//电机前进
-            {
-                CtrlMsg[0] = 3;
-                CtrlMsg[1] = TR&0xFF;
-                CtrlMsg[2] = (TR>>8)&0xFF;
-                CtrlMsg[3] = 0x20;
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-                CtrlMsg[6] = 0;
-                CtrlMsg[7] = 0;
-            }
-            else if(TR<0)//电机后退
-            {
-                CtrlMsg[0] = 2;
-                CtrlMsg[1] = (-TR)&0xFF;
-                CtrlMsg[2] = (-TR>>8)&0xFF;
-                CtrlMsg[3] = 0x20;
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-                CtrlMsg[6] = 0;
-                CtrlMsg[7] = 0;
-            }
-            else//电机制动
-            {
-                CtrlMsg[0] = 3;
-                CtrlMsg[1] = 0;
-                CtrlMsg[2] = 0;
-                CtrlMsg[3] = 0x60;
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-                CtrlMsg[6] = 0x10;
-                CtrlMsg[7] = 0xFF;
-            }
-        }
-        /*超声波报警*/
-        else
-        {
-            CtrlMsg[0] = 3;
-            CtrlMsg[1] = 0;
-            CtrlMsg[2] = 0;
-            CtrlMsg[3] = 0x60;
-            CtrlMsg[4] = 0x00;
-            CtrlMsg[5] = 0x00;
-            CtrlMsg[6] = 0x10;
-            CtrlMsg[7] = 0xFF;
-        }
-    }
-    /*刹车状态*/
-    else
-    {
-        CtrlMsg[0] = 3;
-        CtrlMsg[1] = 0;
-        CtrlMsg[2] = 0;
-        CtrlMsg[3] = 0x60;
-        CtrlMsg[4] = 0x00;
-        CtrlMsg[5] = 0x00;
-        CtrlMsg[6] = 0x10;
-        CtrlMsg[7] = 0xFF;
-    }
+	if(TR>0)//电机前进
+	{
+		CtrlMsg[0] = 3;
+		CtrlMsg[1] = TR&0xFF;
+		CtrlMsg[2] = (TR>>8)&0xFF;
+		CtrlMsg[3] = 0x20;
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		CtrlMsg[6] = 0;
+		CtrlMsg[7] = 0;
+	}
+	else if(TR<0)//电机后退
+	{
+		CtrlMsg[0] = 2;
+		CtrlMsg[1] = (-TR)&0xFF;
+		CtrlMsg[2] = (-TR>>8)&0xFF;
+		CtrlMsg[3] = 0x20;
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		CtrlMsg[6] = 0;
+		CtrlMsg[7] = 0;
+	}
+	else//电机制动
+	{
+		CtrlMsg[0] = 3;
+		CtrlMsg[1] = 0;
+		CtrlMsg[2] = 0;
+		CtrlMsg[3] = 0x60;
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		CtrlMsg[6] = 0x10;
+		CtrlMsg[7] = 0xFF;
+	}
     Can_SendExtMsg(CtrlMsg,8,YQFL_EXTID0);
 }
 
@@ -107,77 +75,45 @@ void YQFR_TRctrl(u8 RunSta,u8 SonicSta,s16 TR)
 {
     u8 CtrlMsg[8] = {0,0,0,0,0,0,0,0};
 		
-		/*油门限幅*/
-		if(TR>MAX_TR)
-			TR = MAX_TR;
-		if(TR<-MAX_TR)
-			TR = -MAX_TR;
+	/*油门限幅*/
+	if(TR>MAX_TR)
+		TR = MAX_TR;
+	if(TR<-MAX_TR)
+		TR = -MAX_TR;
 
-    /*运行状态*/
-    if(RunSta==3)
-    {
-        /*超声波正常*/
-        if(SonicSta==0)
-        {
-            if(TR>0)//电机前进
-            {
-                CtrlMsg[0] = 3;
-                CtrlMsg[1] = (TR)&0xFF;
-                CtrlMsg[2] = (TR>>8)&0xFF;
-                CtrlMsg[3] = 0x28;
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-                CtrlMsg[6] = 0;
-                CtrlMsg[7] = 0;
-            }
-            else if(TR<0)//电机后退
-            {
-                CtrlMsg[0] = 2;
-                CtrlMsg[1] = (-TR)&0xFF;
-                CtrlMsg[2] = (-TR>>8)&0xFF;
-                CtrlMsg[3] = 0x28;
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-                CtrlMsg[6] = 0;
-                CtrlMsg[7] = 0;
-            }
-            else//电机制动
-            {
-                CtrlMsg[0] = 3;
-                CtrlMsg[1] = 0;
-                CtrlMsg[2] = 0;
-                CtrlMsg[3] = 0x68;
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-                CtrlMsg[6] = 0x10;
-                CtrlMsg[7] = 0xFF;
-            }
-        }
-        /*超声波报警*/
-        else
-        {
-            CtrlMsg[0] = 3;
-            CtrlMsg[1] = 0;
-            CtrlMsg[2] = 0;
-            CtrlMsg[3] = 0x68;
-            CtrlMsg[4] = 0x00;
-            CtrlMsg[5] = 0x00;
-            CtrlMsg[6] = 0x10;
-            CtrlMsg[7] = 0xFF;
-        }
-    }
-    /*刹车状态*/
-    else
-    {
-        CtrlMsg[0] = 3;
-        CtrlMsg[1] = 0;
-        CtrlMsg[2] = 0;
-        CtrlMsg[3] = 0x68;
-        CtrlMsg[4] = 0x00;
-        CtrlMsg[5] = 0x00;
-        CtrlMsg[6] = 0x10;
-        CtrlMsg[7] = 0xFF;
-    }
+	if(TR>0)//电机前进
+	{
+		CtrlMsg[0] = 3;
+		CtrlMsg[1] = (TR)&0xFF;
+		CtrlMsg[2] = (TR>>8)&0xFF;
+		CtrlMsg[3] = 0x28;
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		CtrlMsg[6] = 0;
+		CtrlMsg[7] = 0;
+	}
+	else if(TR<0)//电机后退
+	{
+		CtrlMsg[0] = 2;
+		CtrlMsg[1] = (-TR)&0xFF;
+		CtrlMsg[2] = (-TR>>8)&0xFF;
+		CtrlMsg[3] = 0x28;
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		CtrlMsg[6] = 0;
+		CtrlMsg[7] = 0;
+	}
+	else//电机制动
+	{
+		CtrlMsg[0] = 3;
+		CtrlMsg[1] = 0;
+		CtrlMsg[2] = 0;
+		CtrlMsg[3] = 0x68;
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		CtrlMsg[6] = 0x10;
+		CtrlMsg[7] = 0xFF;
+	}
     Can_SendExtMsg(CtrlMsg,8,YQFR_EXTID0);
 }
 
@@ -222,85 +158,52 @@ void YQRL_TRctrl(u8 RunSta,u8 SonicSta,s16 TR, s8 expectSpeedDir)
 		s16_brakeVal = -u16_brakeVal;
 		TR = 0.0; //将驱动扭矩置0
 	}
-
-    /*运行状态*/
-    if(RunSta==3)
-    {
-        /*超声波正常*/
-        if(SonicSta==0)
-        {
-            if(TR>0)//电机前进
-            {							
-                CtrlMsg[0] = 3;
-                CtrlMsg[1] = (TR)&0xFF;
-                CtrlMsg[2] = (TR>>8)&0xFF;
-                CtrlMsg[3] = 0x20;   //0b0010 0000 油门扭矩控制
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-                CtrlMsg[6] = 0;
-                CtrlMsg[7] = 0;
-            }
-            else if(TR<0)//电机后退
-            {							
-                CtrlMsg[0] = 2;
-                CtrlMsg[1] = (-TR)&0xFF;
-                CtrlMsg[2] = (-TR>>8)&0xFF;
-                CtrlMsg[3] = 0x20;
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-                CtrlMsg[6] = 0;
-                CtrlMsg[7] = 0;
-            }
-            else//电机制动
-            {
-				//此处应判断期望的速度方向，并据此设置对应的档位
-				//因为速度反馈值为标量，只能通过档位值判断其方向
-				//如果车辆正在向前行驶，但档位值置反，解析得到的速度将为负数，导致错误
-				if(expectSpeedDir == 1)
-					CtrlMsg[0] = 3; //前进挡
-				else
-					CtrlMsg[0] = 2; //
-
-                CtrlMsg[1] = 0;
-                CtrlMsg[2] = 0;
-                CtrlMsg[3] = 0x60;   //0x40 刹车 0x20 油门扭矩控制
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-				
-				//制动电流 低-高
-				CtrlMsg[6] = s16_brakeVal;
-                CtrlMsg[7] = s16_brakeVal >> 8;
-            }
-        }
-        /*超声波报警*/
-        else
-        {
-            CtrlMsg[0] = 3;
-            CtrlMsg[1] = 0;
-            CtrlMsg[2] = 0;
-            CtrlMsg[3] = 0x60;
-            CtrlMsg[4] = 0x00;
-            CtrlMsg[5] = 0x00;
-            CtrlMsg[6] = 0x10;
-            CtrlMsg[7] = 0xFF;
-        }
-    }
-    /*刹车状态*/
-    else
-    {
-        CtrlMsg[0] = 3;
-        CtrlMsg[1] = 0;
-        CtrlMsg[2] = 0;
-        CtrlMsg[3] = 0x60;
-        CtrlMsg[4] = 0x00;
-        CtrlMsg[5] = 0x00;
-        CtrlMsg[6] = 0x10;
-        CtrlMsg[7] = 0xFF;
-    }
-   RLCanSta = Can_SendExtMsg(CtrlMsg,8,YQRL_EXTID0);
 	
-	if(RLCanSta==0)
-		CanSta ++;
+	if(TR>0)//电机前进
+	{							
+		CtrlMsg[0] = 3;
+		CtrlMsg[1] = (TR)&0xFF;
+		CtrlMsg[2] = (TR>>8)&0xFF;
+		CtrlMsg[3] = 0x20;   //0b0010 0000 油门扭矩控制
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		CtrlMsg[6] = 0;
+		CtrlMsg[7] = 0;
+	}
+	else if(TR<0)//电机后退
+	{							
+		CtrlMsg[0] = 2;
+		CtrlMsg[1] = (-TR)&0xFF;
+		CtrlMsg[2] = (-TR>>8)&0xFF;
+		CtrlMsg[3] = 0x20;
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		CtrlMsg[6] = 0;
+		CtrlMsg[7] = 0;
+	}
+	else//电机制动
+	{
+		//此处应判断期望的速度方向，并据此设置对应的档位
+		//因为速度反馈值为标量，只能通过档位值判断其方向
+		//如果车辆正在向前行驶，但档位值置反，解析得到的速度将为负数，导致错误
+		if(expectSpeedDir == 1)
+			CtrlMsg[0] = 3; //前进挡
+		else
+			CtrlMsg[0] = 2; //
+
+		CtrlMsg[1] = 0;
+		CtrlMsg[2] = 0;
+		CtrlMsg[3] = 0x60;   //0x40 刹车 0x20 油门扭矩控制
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		
+		//制动电流 低-高
+		CtrlMsg[6] = s16_brakeVal;
+		CtrlMsg[7] = s16_brakeVal >> 8;
+	}
+	RLCanSta = Can_SendExtMsg(CtrlMsg,8,YQRL_EXTID0);
+	
+	if(RLCanSta==0) CanSta ++;
 		
 }
 
@@ -341,79 +244,47 @@ void YQRR_TRctrl(u8 RunSta,u8 SonicSta,s16 TR, s8 expectSpeedDir)
 		TR = 0; //将驱动扭矩置0
 	}
 
-    /*运行状态*/
-    if(RunSta==3)
-    {
-        /*超声波正常*/
-        if(SonicSta==0)
-        {
-            if(TR>0)//电机前进
-            {							
-                CtrlMsg[0] = 3;
-                CtrlMsg[1] = (TR)&0xFF;
-                CtrlMsg[2] = (TR>>8)&0xFF;
-                CtrlMsg[3] = 0x28;
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-                CtrlMsg[6] = 0;
-                CtrlMsg[7] = 0;
-            }
-            else if(TR<0)//电机后退
-            {							
-                CtrlMsg[0] = 2;
-                CtrlMsg[1] = (-TR)&0xFF;
-                CtrlMsg[2] = (-TR>>8)&0xFF;
-                CtrlMsg[3] = 0x28;
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-                CtrlMsg[6] = 0;
-                CtrlMsg[7] = 0;
-            }
-            else//电机制动
-            {
-				//此处应判断期望的速度方向，并据此设置对应的档位
-				//因为速度反馈值为标量，只能通过档位值判断其方向
-				//如果车辆正在向前行驶，但档位值置反，解析得到的速度将为负数，导致错误
-				if(expectSpeedDir == 1)
-					CtrlMsg[0] = 3; //前进挡
-				else
-					CtrlMsg[0] = 2; //后退档
-				
-                CtrlMsg[1] = 0;
-                CtrlMsg[2] = 0;
-                CtrlMsg[3] = 0x68;
-                CtrlMsg[4] = 0x00;
-                CtrlMsg[5] = 0x00;
-				
-                //制动电流 低-高
-				CtrlMsg[6] = s16_brakeVal;
-                CtrlMsg[7] = s16_brakeVal >> 8;
-            }
-        }
-        /*超声波报警*/
-        else
-        {
-            CtrlMsg[0] = 3;
-            CtrlMsg[1] = 0;
-            CtrlMsg[2] = 0;
-            CtrlMsg[3] = 0x68;
-            CtrlMsg[4] = 0x00;
-            CtrlMsg[5] = 0x00;
-            CtrlMsg[6] = 0x10;
-            CtrlMsg[7] = 0xFF;
-        }
-    }
-    /*刹车状态*/
-    else
-    {
-        CtrlMsg[0] = 3;
-        CtrlMsg[1] = 0;
-        CtrlMsg[2] = 0;
-        CtrlMsg[3] = 0x68;
-        CtrlMsg[4] = 0x00;
-        CtrlMsg[5] = 0x00;
-        CtrlMsg[6] = 0x10;
-        CtrlMsg[7] = 0xFF;
-    }
+	if(TR>0)//电机前进
+	{							
+		CtrlMsg[0] = 3;
+		CtrlMsg[1] = (TR)&0xFF;
+		CtrlMsg[2] = (TR>>8)&0xFF;
+		CtrlMsg[3] = 0x28;
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		CtrlMsg[6] = 0;
+		CtrlMsg[7] = 0;
+	}
+	else if(TR<0)//电机后退
+	{							
+		CtrlMsg[0] = 2;
+		CtrlMsg[1] = (-TR)&0xFF;
+		CtrlMsg[2] = (-TR>>8)&0xFF;
+		CtrlMsg[3] = 0x28;
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		CtrlMsg[6] = 0;
+		CtrlMsg[7] = 0;
+	}
+	else//电机制动
+	{
+		//此处应判断期望的速度方向，并据此设置对应的档位
+		//因为速度反馈值为标量，只能通过档位值判断其方向
+		//如果车辆正在向前行驶，但档位值置反，解析得到的速度将为负数，导致错误
+		if(expectSpeedDir == 1)
+			CtrlMsg[0] = 3; //前进挡
+		else
+			CtrlMsg[0] = 2; //后退档
+		
+		CtrlMsg[1] = 0;
+		CtrlMsg[2] = 0;
+		CtrlMsg[3] = 0x68;
+		CtrlMsg[4] = 0x00;
+		CtrlMsg[5] = 0x00;
+		
+		//制动电流 低-高
+		CtrlMsg[6] = s16_brakeVal;
+		CtrlMsg[7] = s16_brakeVal >> 8;
+	}
     Can_SendExtMsg(CtrlMsg,8,YQRR_EXTID0);
 }

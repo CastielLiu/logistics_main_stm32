@@ -43,7 +43,7 @@ void TIM7_Init(void)
     TIM_Cmd(TIM7, ENABLE);  //使能TIMx
 }
 
-float TargetAngle,Alpha,RealRPM,TargetTorque;
+float TargetAngle,RealRPM,TargetTorque;
 float expectSpeed = 0.0;
 
 const float munualCtrlMaxSpeed = 2.5; //m/s
@@ -52,6 +52,7 @@ float g_sensorVoltage = 0.0;
 u8    g_angleSensorInited = 0;   //必须初始化为0
 float g_roadwheelAngle = 0.0;
 float g_firstRoadwheelAngle;     //上电时前轮的转角值
+u32 g_currentPulse;			 //电机实时的脉冲值
 
 double g_seconds = 0.0;          //从定时器开启经过的时间
 uint32_t g_timerCnt10ms = 0;     //10ms计数器
@@ -76,7 +77,6 @@ void TIM7_IRQHandler(void)   //TIM7中断
     {
         RealRPM = (YQRL_info.RPM+YQRR_info.RPM)/2;	//后轮获取转速r/min
 		g_vehicleSpeed = (YQRL_info.speed + YQRR_info.speed)/2; // m/s
-        Alpha = TargetAngle*10.25/66/65;		//根据目标转角换算成实际前轮转角,单位(0.1deg)
 		TargetTorque = 0;
 		
         if(rc.sw2==3 ||  //右侧拨码中位 /*自动驾驶状态  PID速度控制*/
@@ -143,34 +143,38 @@ void TIM7_IRQHandler(void)   //TIM7中断
         }
     }
 #if (ENABLE_SONIC == 1)
-	if(g_timerCnt10ms%7 == 0) /*每70ms执行一次超声波决策*/
-		sonicDecisionMakingResult = SonicDecisionMaking();
-	
-	//当超声波报警使车辆无法运行时需重置pid参数以防止超声波解除报警后由于误差累计导致的大扭矩
-	if(sonicDecisionMakingResult&0x01 && expectSpeedDir==1)//禁止前进且当前期望速度方向为正
+	if(rc.sw1==3) //左侧拨码中位，运行状态且超声波有效
 	{
-		TargetTorque = -255;
-		IncrementPIDspeedCtrl(&g_speedPID,expectSpeed, g_vehicleSpeed, g_seconds, 1); //重置pid
+		if(g_timerCnt10ms%7 == 0) /*每70ms执行一次超声波决策*/
+			sonicDecisionMakingResult = SonicDecisionMaking();
+		//当超声波报警使车辆无法运行时需重置pid参数以防止超声波解除报警后由于误差累计导致的大扭矩
+		if(sonicDecisionMakingResult&0x01 && expectSpeedDir==1)//禁止前进且当前期望速度方向为正
+		{
+			TargetTorque = -255; //全扭矩制动
+			IncrementPIDspeedCtrl(&g_speedPID,expectSpeed, g_vehicleSpeed, g_seconds, 1); //重置pid
+		}
+		if(sonicDecisionMakingResult&0x02 && expectSpeedDir==-1)//禁止后退且当前期望速度方向为负
+		{
+			TargetTorque = 255;  //全扭矩制动
+			IncrementPIDspeedCtrl(&g_speedPID,expectSpeed, g_vehicleSpeed, g_seconds, 1); //重置pid
+		}
 	}
-	if(sonicDecisionMakingResult&0x02 && expectSpeedDir==-1)//禁止后退且当前期望速度方向为负
-	{
-		TargetTorque = 255;
-		IncrementPIDspeedCtrl(&g_speedPID,expectSpeed, g_vehicleSpeed, g_seconds, 1); //重置pid
-	}
-
+	else if(rc.sw1==1) //左侧拨码上位，运行状态并屏蔽超声波
+		sonicDecisionMakingResult = 0;
 #endif
 
     /*每40ms控制一次前轮*/
-    if(g_timerCnt10ms%4 == 0)
+    if(g_timerCnt10ms%5 == 0)
     {
+//		DMS055A_SendPosition(-rc.ch1*110);
 		if(g_angleSensorInited)
 			setRoadWheelAngle(TargetAngle);
     }
-//		/*每45ms读取一次转向电机绝对位置*/
-//		if(flag_1ms%=45)
-//		{
-//			DMS055A_ReadCurrent();
-//		}
+	/*每40ms读取一次转向电机绝对位置*/
+	if(g_timerCnt10ms%4 == 0)
+	{
+		DMS055A_ReadPosition();//发送请求
+	}
 
     if(g_timerCnt10ms%5 == 0)/*每50ms控制一次左后轮*/
         YQRL_TRctrl(rc.sw1,Sonic_info.SonicAlarm,TargetTorque,expectSpeedDir);
@@ -187,13 +191,11 @@ void TIM7_IRQHandler(void)   //TIM7中断
 		else if(expectBrakeVal < 80 && expectBrakeVal > 0) 
 			expectBrakeVal = 80;
 		
-        JY01_Ctrl(rc.sw2,rc.sw1,Sonic_info.SonicAlarm,expectBrakeVal,RealRPM,Alpha); //发送前轮制动指令
-        Industry_Reply(YQRL_info.RPM,YQRR_info.RPM,Alpha,TargetTorque, expectBrakeVal); //向工控上报车辆状态
+        JY01_Ctrl(rc.sw2,rc.sw1,Sonic_info.SonicAlarm,expectBrakeVal,RealRPM,TargetAngle); //发送前轮制动指令
+        Industry_Reply(YQRL_info.RPM,YQRR_info.RPM,TargetAngle,TargetTorque, expectBrakeVal); //向工控上报车辆状态
     }
     
     if(g_timerCnt10ms%8 == 0) /*每80ms发送指令给下位机（从）*/
-        Client_Ctrl(rc.sw2,rc.sw1,sonicDecisionMakingResult,RealRPM,Alpha);
- 
-	
+        Client_Ctrl(rc.sw2,rc.sw1,sonicDecisionMakingResult,RealRPM,TargetAngle);
 }
 

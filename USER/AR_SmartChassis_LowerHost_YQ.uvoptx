@@ -139,7 +139,6 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name></Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -177,157 +176,102 @@
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>rc.sw1</ItemText>
+          <ItemText>expectBrakeVal,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>expectBrakeVal,0x0A</ItemText>
+          <ItemText>TargetTorque,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>TargetTorque,0x0A</ItemText>
+          <ItemText>g_angleSensorVoltage</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_angleSensorVoltage</ItemText>
+          <ItemText>g_roadwheelAngle</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_roadwheelAngle</ItemText>
+          <ItemText>steerMotorPulseNum,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>steerMotorPulseNum,0x0A</ItemText>
+          <ItemText>TargetAngle</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>TargetAngle</ItemText>
+          <ItemText>g_firstRoadwheelAngle</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_firstRoadwheelAngle</ItemText>
+          <ItemText>g_speedPID.kp</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_speedPID.kp</ItemText>
+          <ItemText>g_speedPID.ki</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_speedPID.ki</ItemText>
+          <ItemText>g_speedPID.kd</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_speedPID.kd</ItemText>
+          <ItemText>CanSta</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>1</WinNumber>
-          <ItemText>CanSta</ItemText>
+          <ItemText>TxMessage.ExtId</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>1</WinNumber>
-          <ItemText>TxMessage.ExtId</ItemText>
+          <ItemText>g_vehicleSpeed,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>14</count>
           <WinNumber>1</WinNumber>
-          <ItemText>SonicPositive_info.A1</ItemText>
+          <ItemText>g_angleSensorVoltage</ItemText>
         </Ww>
         <Ww>
           <count>15</count>
           <WinNumber>1</WinNumber>
-          <ItemText>SonicPositive_info.A2</ItemText>
+          <ItemText>g_roadwheelAngle</ItemText>
         </Ww>
         <Ww>
           <count>16</count>
           <WinNumber>1</WinNumber>
-          <ItemText>SonicPositive_info.A3</ItemText>
+          <ItemText>\\AR_SmartChassis_LowerHost\../HARDWARE/TIMER/timer.c\TargetAngle</ItemText>
         </Ww>
         <Ww>
           <count>17</count>
           <WinNumber>1</WinNumber>
-          <ItemText>SonicPositive_info.A4</ItemText>
+          <ItemText>g_currentPulse</ItemText>
         </Ww>
         <Ww>
           <count>18</count>
           <WinNumber>1</WinNumber>
-          <ItemText>SonicPositive_info.A5</ItemText>
+          <ItemText>g_TR</ItemText>
         </Ww>
         <Ww>
           <count>19</count>
           <WinNumber>1</WinNumber>
-          <ItemText>SonicPositive_info.A6</ItemText>
+          <ItemText>DMS055A_info.CurrentPos,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>20</count>
           <WinNumber>1</WinNumber>
-          <ItemText>SonicPositive_info.A7</ItemText>
-        </Ww>
-        <Ww>
-          <count>21</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>SonicPositive_info.A8</ItemText>
-        </Ww>
-        <Ww>
-          <count>22</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>sonicDecisionMakingResult</ItemText>
-        </Ww>
-        <Ww>
-          <count>23</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>db_usart3_len</ItemText>
-        </Ww>
-        <Ww>
-          <count>24</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>dbus_buf[0]</ItemText>
-        </Ww>
-        <Ww>
-          <count>25</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>g_sonicEmergenDis,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>26</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>g_vehicleSpeed,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>27</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>g_sensorVoltage,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>28</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>\\AR_SmartChassis_LowerHost\../HARDWARE/TIMER/timer.c\TargetAngle</ItemText>
-        </Ww>
-        <Ww>
-          <count>29</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>\\AR_SmartChassis_LowerHost\../HARDWARE/TIMER/timer.c\TargetAngle</ItemText>
-        </Ww>
-        <Ww>
-          <count>30</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>\\AR_SmartChassis_LowerHost\../HARDWARE/TIMER/timer.c\TargetAngle</ItemText>
-        </Ww>
-        <Ww>
-          <count>31</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>\\AR_SmartChassis_LowerHost\../HARDWARE/DMS055A/dms055a.c\steerMotorPulseNum</ItemText>
+          <ItemText>angle_err</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -398,7 +342,7 @@
       <DebugFlag>
         <trace>0</trace>
         <periodic>1</periodic>
-        <aLwin>1</aLwin>
+        <aLwin>0</aLwin>
         <aCover>0</aCover>
         <aSer1>0</aSer1>
         <aSer2>0</aSer2>
@@ -864,7 +808,7 @@
       <GroupNumber>5</GroupNumber>
       <FileNumber>31</FileNumber>
       <FileType>1</FileType>
-      <tvExp>1</tvExp>
+      <tvExp>0</tvExp>
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
