@@ -161,44 +161,44 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
         Get_YQ1_Data(&YQFL_info,RxMessage.Data);
         break;
     }
-    case YQFL_EXTID2:
-    {
-        Get_YQ2_Data(&YQFL_info,RxMessage.Data);
-        break;
-    }
+//    case YQFL_EXTID2:
+//    {
+//        Get_YQ2_Data(&YQFL_info,RxMessage.Data);
+//        break;
+//    }
     /*解析右前轮消息*/
     case YQFR_EXTID1:
     {
         Get_YQ1_Data(&YQFR_info,RxMessage.Data);
         break;
     }
-    case YQFR_EXTID2:
-    {
-        Get_YQ2_Data(&YQFR_info,RxMessage.Data);
-        break;
-    }
+//    case YQFR_EXTID2:
+//    {
+//        Get_YQ2_Data(&YQFR_info,RxMessage.Data);
+//        break;
+//    }
     /*解析左后轮消息*/
     case YQRL_EXTID1:
     {
         Get_YQ1_Data(&YQRL_info,RxMessage.Data);
         break;
     }
-    case YQRL_EXTID2:
-    {
-        Get_YQ2_Data(&YQRL_info,RxMessage.Data);
-        break;
-    }
+//    case YQRL_EXTID2:
+//    {
+//        Get_YQ2_Data(&YQRL_info,RxMessage.Data);
+//        break;
+//    }
     /*解析右后轮消息*/
     case YQRR_EXTID1:
     {
         Get_YQ1_Data(&YQRR_info,RxMessage.Data);
         break;
     }
-    case YQRR_EXTID2:
-    {
-        Get_YQ2_Data(&YQRR_info,RxMessage.Data);
-        break;
-    }
+//    case YQRR_EXTID2:
+//    {
+//        Get_YQ2_Data(&YQRR_info,RxMessage.Data);
+//        break;
+//    }
     default:
         break;
     }
@@ -284,10 +284,12 @@ u8 Can_SendExtMsg(u8 *msg,u8 len,u32 extID)
 //buf:数据缓存区;
 //返回值:0,无数据被收到;
 //其他,接收的数据长度;
+
 u8 Can_Receive_Msg(u8 *buf,u32 *stdId)
 {
     u8 i;
-    CanRxMsg RxMessage;
+	CanRxMsg RxMessage;
+
     if( CAN_MessagePending(CAN1,CAN_FIFO0)==0)
         return 0;		//没有接收到数据,直接退出
     CAN_Receive(CAN1, CAN_FIFO0, &RxMessage);//读取数据

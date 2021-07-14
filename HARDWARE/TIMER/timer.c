@@ -18,7 +18,7 @@
 void TIM7_Init(void)
 {
     TIM_TimeBaseInitTypeDef		TIM_TimeBaseStructure;
-    NVIC_InitTypeDef					NVIC_InitStructure;
+    NVIC_InitTypeDef			NVIC_InitStructure;
 
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE); //时钟使能
 
@@ -61,6 +61,7 @@ double g_lastValidCmdTime = 0.0; //上一次接收有效指令的时间,当指令超时后需紧急制
 s8 expectSpeedDir = 0;  //必须初始化为0
 u16 expectBrakeVal = 0;  //必须初始化为0
 u8  sonicDecisionMakingResult = 0;
+u8 db_reset_cnt = 0;
 	
 void TIM7_IRQHandler(void)   //TIM7中断
 {
@@ -72,6 +73,19 @@ void TIM7_IRQHandler(void)   //TIM7中断
         g_timerCnt10ms ++;
 		g_seconds += 0.01;
     }
+
+#ifdef DEBUG
+	{
+		static float last_reset_time = 0;
+		if(abs(rc.ch2)  > 300 && g_seconds - last_reset_time  > 1.0)
+		{
+			CAN_Mode_Init(CAN_SJW_1tq,CAN_BS2_8tq,CAN_BS1_9tq,4,CAN_Mode_Normal);	
+			last_reset_time = g_seconds;
+			db_reset_cnt++;
+		}
+
+	}
+#endif
 	
     /*每10ms进行一次数据更新*/
     {
@@ -176,11 +190,14 @@ void TIM7_IRQHandler(void)   //TIM7中断
 		DMS055A_ReadPosition();//发送请求
 	}
 
-    if(g_timerCnt10ms%5 == 0)/*每50ms控制一次左后轮*/
-        YQRL_TRctrl(rc.sw1,Sonic_info.SonicAlarm,TargetTorque,expectSpeedDir);
- 
-    if(g_timerCnt10ms%5 == 1) /*每50ms控制一次右后轮*/
-        YQRR_TRctrl(rc.sw1,Sonic_info.SonicAlarm,TargetTorque,expectSpeedDir);
+	if(rc.sw1 != 2) //左侧拨码下位，注册
+	{
+		if(g_timerCnt10ms%5 == 0)/*每50ms控制一次左后轮*/
+			YQRL_TRctrl(rc.sw1,Sonic_info.SonicAlarm,TargetTorque,expectSpeedDir);
+	 
+		if(g_timerCnt10ms%5 == 1) /*每50ms控制一次右后轮*/
+			YQRR_TRctrl(rc.sw1,Sonic_info.SonicAlarm,TargetTorque,expectSpeedDir);
+	}
 	
     /*每50ms发送指令给居逸驱动器和上位机*/
     if(g_timerCnt10ms%5 == 3)

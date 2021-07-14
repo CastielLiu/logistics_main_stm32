@@ -16,7 +16,7 @@
 
 int main(void)
 {
-	int delay_cnt = 50;
+	int delay_cnt = 10;
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组2
 	//初始化CAN接口，与JY01通信，控制后轮  //CAN_Mode_LoopBack  CAN_Mode_Normal
     CAN_Mode_Init(CAN_SJW_1tq,CAN_BS2_8tq,CAN_BS1_9tq,4,CAN_Mode_Normal);	

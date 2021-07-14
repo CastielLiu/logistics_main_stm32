@@ -211,67 +211,67 @@
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_speedPID.kp</ItemText>
+          <ItemText>TxMessage.ExtId</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_speedPID.ki</ItemText>
+          <ItemText>g_vehicleSpeed,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_speedPID.kd</ItemText>
+          <ItemText>g_angleSensorVoltage</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>CanSta</ItemText>
+          <ItemText>g_roadwheelAngle</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>1</WinNumber>
-          <ItemText>TxMessage.ExtId</ItemText>
+          <ItemText>db_fullDir,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_vehicleSpeed,0x0A</ItemText>
+          <ItemText>g_currentPulse</ItemText>
         </Ww>
         <Ww>
           <count>14</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_angleSensorVoltage</ItemText>
+          <ItemText>db_adjustVoltage,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>15</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_roadwheelAngle</ItemText>
+          <ItemText>DMS055A_info.CurrentPos,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>16</count>
           <WinNumber>1</WinNumber>
-          <ItemText>\\AR_SmartChassis_LowerHost\../HARDWARE/TIMER/timer.c\TargetAngle</ItemText>
+          <ItemText>RxMessage.ExtId</ItemText>
         </Ww>
         <Ww>
           <count>17</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_currentPulse</ItemText>
+          <ItemText>sonicDecisionMakingResult</ItemText>
         </Ww>
         <Ww>
           <count>18</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_TR</ItemText>
+          <ItemText>rc.sw1</ItemText>
         </Ww>
         <Ww>
           <count>19</count>
           <WinNumber>1</WinNumber>
-          <ItemText>DMS055A_info.CurrentPos,0x0A</ItemText>
+          <ItemText>rc.sw2</ItemText>
         </Ww>
         <Ww>
           <count>20</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angle_err</ItemText>
+          <ItemText>RealRPM</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -886,7 +886,7 @@
       <GroupNumber>5</GroupNumber>
       <FileNumber>37</FileNumber>
       <FileType>1</FileType>
-      <tvExp>0</tvExp>
+      <tvExp>1</tvExp>
       <Focus>0</Focus>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
